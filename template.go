@@ -1,23 +1,23 @@
 package goh4
 
+import "fmt"
+
 type Template struct {
 	*Element
-	css              []Stringer
-	locals           map[string]Stringer
-	placeholderCache map[string]*Element
+	locals           map[Id]Stringer
+	placeholderCache map[Id]*Element
 }
 
 func NewTemplate(t *Element) *Template {
 	return &Template{
 		Element:          t,
-		locals:           map[string]Stringer{},
-		placeholderCache: map[string]*Element{},
-		css:              []Stringer{},
+		locals:           map[Id]Stringer{},
+		placeholderCache: map[Id]*Element{},
 	}
 }
 
 // merges the locals to the Templates
-func (ø *Template) Merge() {
+func (ø *Template) merge() {
 	for k, v := range ø.locals {
 		oldParent := ø.placeholderCache[k].Parent()
 
@@ -32,49 +32,42 @@ func (ø *Template) Merge() {
 	}
 }
 
-// create a common Css, no context given
-func (ø *Template) NewCss(objects ...Stringer) (r *Css) {
-	r = NewCss(objects...)
-	ø.Add(r)
+// caches the Stringer
+func (ø *Template) cacheFragement(id Id) (err error) {
+	found, h := ø.Element.Any(Id(id))
+	if !found {
+		return fmt.Errorf("element with id %v not found in %s", id, ø.Element.String())
+	}
+	ø.placeholderCache[id] = h
 	return
 }
 
-// caches the Stringer and panics if it can't be found
-func (ø *Template) cacheFragement(id string) {
-	found, h := ø.Element.Any(Id(id))
-	if !found {
-		panicf("tag with id %v not found in %s", id, ø.Element.String())
-	}
-	ø.placeholderCache[id] = h
-}
-
-// overwrite Element.String()
-func (ø *Template) String() string {
-	if len(ø.css) > 0 && ø.Element.tag == "doc" {
-		sElement := NewElement(Tag("style"), Invisible, WithoutEscaping)
-		for _, cr := range ø.css {
-			sElement.Add(cr)
-		}
-		found, head := ø.Element.Any(Tag("head"))
-		if !found {
-			panicf("no head tag present in %s", ø.Element.Path())
-		}
-		head.Add(sElement)
-	}
-	return ø.Element.String()
-}
-
-func (ø *Template) Assign(id string, html Stringer) {
+func (ø *Template) Assign(id Id, html Stringer) (err error) {
 	if ø.placeholderCache[id] == nil {
-		ø.cacheFragement(id)
+		if err = ø.cacheFragement(id); err != nil {
+			return err
+		}
 	}
 	ø.locals[id] = html
-	ø.Merge()
+	ø.merge()
+	return
 }
 
-func (ø *Template) AddCss(rule Stringer) {
+// add css to the head of the template
+func (ø *Template) AddCss(css Stringer) (err error) {
 	if ø.Element.tag != "doc" {
-		panicf("can't add a Css to tag %s", ø.Element.Tag())
+		return fmt.Errorf("can't add Css only to doc pseudotag, not %s", ø.Element.Tag())
 	}
-	ø.css = append(ø.css, rule)
+
+	found, style := ø.Element.Any(Tag("style"))
+	if !found {
+		found, head := ø.Element.Any(Tag("head"))
+		if !found {
+			return fmt.Errorf("no head element present in %s", ø.Element.Path())
+		}
+		style = NewElement(Tag("style"), Invisible, WithoutEscaping)
+		head.Add(style)
+	}
+	style.Add(Html(css.String()))
+	return
 }

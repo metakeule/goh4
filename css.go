@@ -53,10 +53,9 @@ func NewCss(objects ...Stringer) (c *Css) {
 			c.comment = v
 		default:
 			parenter, ok := v.(CssParenter)
-			if !ok {
-				panicf("unknown type for css construction: %#v", v)
+			if ok {
+				c.InheritFrom(parenter)
 			}
-			c.InheritFrom(parenter)
 		}
 	}
 	return
@@ -72,29 +71,6 @@ func (ø *Css) SetClass(c Class) {
 
 func (ø *Css) Comment() string {
 	return ø.comment.String()
-}
-
-func (ø *Css) Matches(t *Element) (m bool) {
-	if ø.Context != "" {
-		panicf("not supported for matching: css rule contains context %s", ø.Context)
-	}
-	if ø.class != "" {
-		if !t.HasClass(ø.class) {
-			return false
-		}
-	}
-
-	if len(ø.Tags) > 0 {
-		for _, tt := range ø.Tags {
-			if ø.matchTag(t, Tag(tt)) {
-				return true
-			}
-		}
-	} else {
-		return true
-	}
-
-	return
 }
 
 func (ø *Css) matchTag(t *Element, tt Tag) (r bool) {
@@ -142,7 +118,7 @@ func (ø *Css) styleString() (r string) {
 			consolidated[k] = v
 		}
 	}
-	for k, v := range ø.Styles() {
+	for k, v := range ø.styles {
 		if inherited[k] != nil {
 			delete(inherited, k)
 		}
@@ -179,8 +155,31 @@ func (ø *Css) Set(vals ...string) {
 	}
 }
 
-func (ø *Css) Styles() map[string]string {
+func (ø *Css) InheritedStyles() map[string]string {
+	inherited := map[string]string{}
+	for _, p := range ø.parents {
+		for k, v := range p.Styles() {
+			inherited[k] = v
+		}
+	}
+	return inherited
+}
+
+func (ø *Css) OwnStyles() map[string]string {
 	return ø.styles
+}
+
+func (ø *Css) Styles() map[string]string {
+	consolidated := map[string]string{}
+	for _, p := range ø.parents {
+		for k, v := range p.Styles() {
+			consolidated[k] = v
+		}
+	}
+	for k, v := range ø.styles {
+		consolidated[k] = v
+	}
+	return consolidated
 }
 
 // let the rule inherit from the given

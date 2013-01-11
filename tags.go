@@ -44,7 +44,7 @@ func Form(objects ...Stringer) (t *Element) {
 	return
 }
 func Head(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("head"), IdForbidden, ClassForbidden, Invisible)
+	t = NewElement(Tag("head"), IdForbidden|ClassForbidden|Invisible)
 	t.parentTags = []Tag{Tag("doc")}
 	t.Set(objects...)
 	return

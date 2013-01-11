@@ -11,34 +11,52 @@ func err(t *testing.T, msg string, is interface{}, shouldbe interface{}) {
 func TestNewElement(t *testing.T) {
 	a := NewElement(Tag("a"))
 
-	if a.invisible {
-		err(t, "incorrect visibility", a.invisible, false)
+	if a.Is(Invisible) {
+		err(t, "incorrect visibility", a.Is(Invisible), false)
 	}
 
-	if a.withoutDecoration {
-		err(t, "incorrect decoration", a.withoutDecoration, false)
+	if a.Is(WithoutDecoration) {
+		err(t, "incorrect decoration", a.Is(WithoutDecoration), false)
 	}
 
-	if a.withoutEscaping {
-		err(t, "incorrect escaping", a.withoutEscaping, false)
+	if a.Is(WithoutEscaping) {
+		err(t, "incorrect escaping", a.Is(WithoutEscaping), false)
 	}
 
-	if a.selfclosing {
-		err(t, "incorrect selfclosing", a.selfclosing, false)
+	if a.Is(SelfClosing) {
+		err(t, "incorrect selfclosing", a.Is(SelfClosing), false)
 	}
 
-	if a.idForbidden {
-		err(t, "incorrect idForbidden", a.idForbidden, false)
+	if a.Is(IdForbidden) {
+		err(t, "incorrect idForbidden", a.Is(IdForbidden), false)
 	}
 
-	if a.classForbidden {
-		err(t, "incorrect classForbidden", a.classForbidden, false)
+	if a.Is(ClassForbidden) {
+		err(t, "incorrect classForbidden", a.Is(ClassForbidden), false)
 	}
 
 	if a.Tag() != "a" {
 		err(t, "incorrect tag", a.Tag(), "a")
 	}
 
+}
+
+// apply the css to the element
+func TestElementApplyCss(t *testing.T) {
+	el := Div()
+	el.ApplyCss(NewCss(Class("uuh")))
+
+	if !el.HasClass(Class("uuh")) {
+		err(t, "incorrect ApplyCss, has class", false, true)
+	}
+
+	if e := el.ApplyCss(NewCss()); e == nil {
+		err(t, "incorrect ApplyCss, error no class", "no class in css rule", nil)
+	}
+
+	if e := el.ApplyCss(NewCss(Class("uuh"), Tag("ul"))); e == nil {
+		err(t, "incorrect ApplyCss, error not affected", "element not affected by css rule", nil)
+	}
 }
 
 func TestElementAdd(t *testing.T) {
@@ -136,6 +154,32 @@ func TestElementAdd(t *testing.T) {
 
 }
 
+type notAnElementer int
+
+func (ø notAnElementer) String() string {
+	return "but a stringer"
+}
+
+func TestElementAddErrors(t *testing.T) {
+	elem := NewElement("paranoid", SelfClosing, ClassForbidden, IdForbidden)
+
+	if e := elem.Add(Text("hiho")); e == nil {
+		err(t, "incorrect result for ElementAdd with selfclosing", "content not allowed", nil)
+	}
+
+	if e := elem.Add(Id("hiho")); e == nil {
+		err(t, "incorrect result for ElementAdd with IdForbidden", "id forbidden", nil)
+	}
+
+	if e := elem.Add(Class("hiho")); e == nil {
+		err(t, "incorrect result for ElementAdd with ClassForbidden", "class forbidden", nil)
+	}
+
+	if e := elem.Add(notAnElementer(0)); e == nil {
+		err(t, "incorrect result for ElementAdd with notAnElementer", "can't set me as parent", nil)
+	}
+}
+
 // TODO add a method to set content before or after a certain inner tag or at a special position, e.g.
 // AddTop(), AddBottom(), AddBefore(Stringer), AddAfter(Stringer), AddAtPosition(pos int)
 // SetTop(), SetBottom(), SetAtPosition(pos int)
@@ -195,6 +239,10 @@ func TestAddAtPosition(t *testing.T) {
 		err(t, "incorrect result for AddAtPosition", div.inner[0], a)
 	}
 
+	if e := div.AddAtPosition(3, h); e == nil {
+		err(t, "incorrect result for AddAtPosition error", "out of range", nil)
+	}
+
 	div2 := Div(a, b, b, a, b)
 
 	div2.AddAtPosition(3, h)
@@ -210,6 +258,7 @@ func TestAddAtPosition(t *testing.T) {
 	if div2.inner[4] != a {
 		err(t, "incorrect result for AddAtPosition", div2.inner[4], a)
 	}
+
 }
 
 func TestSetAtPosition(t *testing.T) {
@@ -225,6 +274,9 @@ func TestSetAtPosition(t *testing.T) {
 		err(t, "incorrect result for SetAtPosition", div.inner[1], h)
 	}
 
+	if e := div.SetAtPosition(2, h); e == nil {
+		err(t, "incorrect result for SetAtPosition error", "out of range", nil)
+	}
 }
 
 func TestSetBottom(t *testing.T) {
@@ -263,8 +315,8 @@ func TestPositionOf(t *testing.T) {
 	}
 
 	pos, found := div.PositionOf(u)
-	if pos != -1 || found {
-		err(t, "incorrect result for PositionOf", pos, -1)
+	if found {
+		err(t, "incorrect result for PositionOf found", found, false)
 	}
 
 }
@@ -288,6 +340,10 @@ func TestAddBefore(t *testing.T) {
 	pos, _ = div.PositionOf(s)
 	if pos != 1 {
 		err(t, "incorrect result for AddBefore", pos, 1)
+	}
+
+	if e := div.AddBefore(Body(), h); e == nil {
+		err(t, "incorrect result for AddBefore error not found", "not found", nil)
 	}
 }
 
@@ -317,5 +373,36 @@ func TestAddAfter(t *testing.T) {
 	pos, _ = div.PositionOf(sp)
 	if pos != 4 {
 		err(t, "incorrect result for AddAfter", pos, 4)
+	}
+
+	if e := div.AddAfter(Body(), h); e == nil {
+		err(t, "incorrect result for AddAfter error not found", "not found", nil)
+	}
+}
+
+func TestHasClass(t *testing.T) {
+	e := A(Class("dipsy"), Class("flopsy"))
+	if !e.HasClass(Class("dipsy")) {
+		err(t, "incorrect result for HasClass having class", false, true)
+	}
+
+	if e.HasClass(Class("lopso")) {
+		err(t, "incorrect result for HasClass having no class", true, false)
+	}
+
+	e.RemoveClass(Class("dipsy"))
+
+	if e.HasClass(Class("dipsy")) {
+		err(t, "incorrect result for RemoveClass", true, false)
+	}
+
+	if !e.HasClass(Class("flopsy")) {
+		err(t, "incorrect result for RemoveClass keeping the others", false, true)
+	}
+
+	e.SetClass(Class("dipsy"), Class("lopso"))
+
+	if e.HasClass(Class("flopsy")) || !e.HasClass(Class("dipsy")) || !e.HasClass(Class("lopso")) {
+		err(t, "incorrect result for SetClass", false, true)
 	}
 }

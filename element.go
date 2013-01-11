@@ -6,18 +6,36 @@ import (
 	"strings"
 )
 
-type option int
+type flag int
 
 const (
-	IdForbidden       option = iota // tag should not have an id attribute
-	ClassForbidden                  // tag should not have a class attribute
-	SelfClosing                     // tag is selfclosing and contains no content
-	Inline                          // tag is an inline element (only for visible tags)
-	Field                           // tag is a field of a form
-	Invisible                       // tag doesn't render anything visible
-	WithoutEscaping                 // for content that is not escaped
-	WithoutDecoration               // for tags like doc that won't show up as tags, but show their content
+	_                      = iota
+	hasDefaults       flag = 1 << iota // element has default flags
+	IdForbidden                        // element should not have an id attribute
+	ClassForbidden                     // element should not have a class attribute
+	SelfClosing                        // element is selfclosing and contains no content
+	Inline                             // element is an inline element (only for visible elements)
+	Field                              // element is a field of a form
+	Invisible                          // element doesn't render anything visible
+	WithoutEscaping                    // for content that is not escaped
+	WithoutDecoration                  // for tags like doc that won't show up as tags, but show their content
 )
+
+var flagNames = map[flag]string{
+	hasDefaults:       "hasDefaults",
+	IdForbidden:       "IdForbidden",
+	ClassForbidden:    "ClassForbidden",
+	SelfClosing:       "SelfClosing",
+	Inline:            "Inline",
+	Field:             "Field",
+	Invisible:         "Invisible",
+	WithoutEscaping:   "WithoutEscaping",
+	WithoutDecoration: "WithoutDecoration",
+}
+
+func (ø flag) String() string {
+	return flagNames[ø]
+}
 
 // allows the Parent of an Element to be exchanged
 type Pather interface {
@@ -39,63 +57,52 @@ type Elementer interface {
 }
 
 type Element struct {
-	Attributes        map[string]string
-	Comment           Comment
-	parent            Pather
-	classes           []Class
-	id                Id
-	inner             []Stringer
-	parentTags        []Tag
-	style             map[string]string
-	inline            bool
-	field             bool
-	withoutEscaping   bool
-	withoutDecoration bool
-	tag               Tag
-	selfclosing       bool
-	idForbidden       bool
-	classForbidden    bool
-	invisible         bool
+	Attributes map[string]string
+	Comment    Comment
+	parent     Pather
+	classes    []Class
+	id         Id
+	inner      []Stringer
+	parentTags []Tag
+	style      map[string]string
+	flags      flag
+	tag        Tag
 }
 
-// contruct a new tag with some options
-// use this method inside a func that adds as helper to generate a certain tag, e.g.
-// func A() *Element { return MakeElement("a", Inline) }
-func NewElement(tag Tag, options ...option) (t *Element) {
-	t = &Element{
+// contruct a new element with some flags
+// use this method inside a func that adds as helper to generate a certain element, e.g.
+// func Input() *Element { return NewElement(Tag("input"), Inline|Field|SelfClosing, Attrs{"name", "myinput"}) }
+// or
+// func Input() *Element { return NewElement(Tag("input"), Inline,Field,SelfClosing, Attrs{"name", "myinput"}) }
+func NewElement(tag Tag, flags ...flag) (ø *Element) {
+	ø = &Element{
 		Attributes: map[string]string{},
 		tag:        tag,
+		flags:      hasDefaults,
 		style:      map[string]string{},
 		parentTags: []Tag{},
 	}
-	for _, o := range options {
-		switch o {
-		case IdForbidden:
-			t.idForbidden = true
-		case ClassForbidden:
-			t.classForbidden = true
-		case SelfClosing:
-			t.selfclosing = true
-		case Inline:
-			t.inline = true
-		case Field:
-			t.field = true
-		case Invisible:
-			t.invisible = true
-		case WithoutEscaping:
-			t.withoutEscaping = true
-		case WithoutDecoration:
-			t.withoutDecoration = true
-		}
+
+	for _, flag := range flags {
+		ø.flags = ø.flags | flag
 	}
 	return
 }
 
+func ExampleNewElement() {
+	fmt.Println("The output of\nthis example.")
+	// Output: The output of
+	// this example.
+}
+
+func (ø *Element) Is(f flag) bool {
+	return ø.flags&f != 0
+}
+
 // returns the fields of a form,
-// panics if invoked on something other than a form
 func (ø *Element) Fields() (fields []*Element) {
 	if ø.tag != "form" {
-		panicf("%s is no form", ø.tag)
+		return []*Element{}
 	}
 	return ø.All(FieldMatcher(0))
 }
@@ -128,7 +135,7 @@ func (ø *Element) NewCss(objects ...Stringer) *Css {
 
 func (ø *Element) idPath() (s string) {
 	s = ""
-	if !ø.idForbidden && ø.id != "" {
+	if !ø.Is(IdForbidden) && ø.id != "" {
 		s = "#" + ø.id.String()
 	}
 	return
@@ -150,8 +157,9 @@ func (ø *Element) IsParentAllowed(parent Tager) (allowed bool) {
 
 // adds css properties to the style attribute, same keys are overwritten
 func (ø *Element) addStyle(styles ...interface{}) {
-	if ø.invisible {
-		panicf("can't set style for invisible tag %s", ø.tag)
+	if ø.Is(Invisible) {
+		// can't set style for invisible tag
+		return
 	}
 	for _, s := range styles {
 		switch v := s.(type) {
@@ -165,8 +173,6 @@ func (ø *Element) addStyle(styles ...interface{}) {
 		case string:
 			a := strings.Split(v, ":")
 			ø.style[a[0]] = strings.Replace(a[1], ";", "", 1)
-		default:
-			panicf("unsupported style: %#v", v)
 		}
 	}
 }
@@ -185,35 +191,42 @@ func (ø *Element) addAttr(attrs ...interface{}) {
 		case string:
 			ar := strings.Split(v, "=")
 			ø.Attributes[ar[0]] = strings.Replace(ar[1], `"`, ``, 2)
-		default:
-			panicf("unsupported attribute: %#v", v)
 		}
 	}
 }
 
 // apply the css to the element
-func (ø *Element) ApplyCss(rules ...Csser) {
+func (ø *Element) ApplyCss(rules ...Csser) (err error) {
 	for _, r := range rules {
 		if r.Class() == "" {
-			panicf("can't apply css rule without a class: %s", r)
+			return fmt.Errorf("can't apply css rule without a class: %s", r)
 		}
 
-		ø.AddClass(Class(r.Class()))
+		if err := ø.AddClass(Class(r.Class())); err != nil {
+			return err
+		}
 
 		if !r.Matches(ø) {
-			panicf("tag %s not affected by css rule %#v", ø.Path(), r)
+			return fmt.Errorf("tag %s not affected by css rule %#v", ø.Path(), r)
 		}
 	}
+	return
 }
 
-func (ø *Element) ensureContentAddIsAllowed() {
-	if ø.selfclosing {
-		panicf("add not allowed for tag »%s«", ø.tag)
+func (ø *Element) ensureContentAddIsAllowed() (err error) {
+	if ø.Is(SelfClosing) {
+		return fmt.Errorf("add not allowed for tag »%s«", ø.tag)
 	}
+	return
 }
 
-func (ø *Element) AddAtPosition(pos int, v Stringer) {
-	ø.ensureParentIsSetAndContentIsAllowed(v)
+func (ø *Element) AddAtPosition(pos int, v Elementer) (err error) {
+	if pos < 0 || pos > len(ø.inner)-1 {
+		return fmt.Errorf("position %v out of range", pos)
+	}
+	if err := ø.ensureParentIsSetAndContentIsAllowed(v); err != nil {
+		return err
+	}
 	before := ø.inner[0:pos]
 	after := ø.inner[pos:len(ø.inner)]
 
@@ -227,94 +240,92 @@ func (ø *Element) AddAtPosition(pos int, v Stringer) {
 		newSlice[len(before)+i+1] = after[i]
 	}
 	ø.inner = newSlice
-
+	return
 }
 
-func (ø *Element) ensureParentIsSetAndContentIsAllowed(v Stringer) {
+func (ø *Element) ensureParentIsSetAndContentIsAllowed(v Stringer) error {
 	e, isElementer := v.(Elementer)
 	if isElementer {
 		if !e.IsParentAllowed(ø) {
-			panicf("tag %s not allowed as parent of %s", ø.Tag(), e.Tag())
+			return fmt.Errorf("tag %s not allowed as parent of %s", ø.Tag(), e.Tag())
 		}
 		e.SetParent(ø)
 	}
-	ø.ensureContentAddIsAllowed()
+	return ø.ensureContentAddIsAllowed()
 }
 
-func (ø *Element) SetAtPosition(pos int, v Stringer) {
-	ø.ensureParentIsSetAndContentIsAllowed(v)
+func (ø *Element) SetAtPosition(pos int, v Elementer) (err error) {
+	if pos < 0 || pos > len(ø.inner)-1 {
+		return fmt.Errorf("position %v out of range", pos)
+	}
+	if err := ø.ensureParentIsSetAndContentIsAllowed(v); err != nil {
+		return err
+	}
 	ø.inner[pos] = v
+	return
 }
 
-func (ø *Element) SetBottom(v Stringer) {
-	ø.ensureParentIsSetAndContentIsAllowed(v)
+func (ø *Element) SetBottom(v Elementer) (err error) {
+	if err := ø.ensureParentIsSetAndContentIsAllowed(v); err != nil {
+		return err
+	}
 	ø.inner[len(ø.inner)-1] = v
-}
-
-type PositionMatcher struct {
-	Element *Element
-	Pos     int
-}
-
-func (ø *PositionMatcher) Matches(e *Element) (f bool) {
-	// no recursive findings
-	if e.Parent() != ø.Element.Parent() {
-		return
-	}
-
-	ø.Pos += 1
-	if ø.Element == e {
-		return true
-	}
 	return
 }
 
 // returns -1 if element could not be found
 func (ø *Element) PositionOf(v *Element) (pos int, found bool) {
-	m := &PositionMatcher{v, -1}
+	m := &PositionMatcher{Element: v}
 	_, _ = ø.Any(m)
 	pos = m.Pos
-	if pos != -1 {
-		found = true
+	found = m.Found
+	return
+}
+
+func (ø *Element) AddBefore(v *Element, nu Elementer) (err error) {
+	pos, found := ø.PositionOf(v)
+	if !found {
+		return fmt.Errorf("could not find %#v", v)
+	}
+	if err := ø.ensureParentIsSetAndContentIsAllowed(nu); err != nil {
+		return err
+	}
+	return ø.AddAtPosition(pos, nu)
+}
+
+func (ø *Element) AddAfter(v *Element, nu Elementer) (err error) {
+	pos, found := ø.PositionOf(v)
+	if !found {
+		return fmt.Errorf("could not find %#v", v)
+	}
+	if err := ø.ensureParentIsSetAndContentIsAllowed(nu); err != nil {
+		return err
+	}
+	if pos > len(ø.inner)-2 {
+		return ø.Add(nu)
+	} else {
+		return ø.AddAtPosition(pos+1, nu)
 	}
 	return
 }
 
-func (ø *Element) AddBefore(v *Element, nu *Element) {
-	pos, _ := ø.PositionOf(v)
-	if pos == -1 {
-		panicf("could not find %#v", v)
-	}
-	ø.ensureParentIsSetAndContentIsAllowed(nu)
-	ø.AddAtPosition(pos, nu)
-}
-
-func (ø *Element) AddAfter(v *Element, nu *Element) {
-	pos, _ := ø.PositionOf(v)
-	if pos == -1 {
-		panicf("could not find %#v", v)
-	}
-	ø.ensureParentIsSetAndContentIsAllowed(nu)
-	if pos > len(ø.inner)-2 {
-		ø.Add(nu)
-	} else {
-		ø.AddAtPosition(pos+1, nu)
-	}
-}
-
 // add new inner content to a tag
 // objects may be Text, Html, *Element, Attr, Attrs, Style, Styles, Css, Id, Class
-func (ø *Element) Add(objects ...Stringer) {
+func (ø *Element) Add(objects ...Stringer) (err error) {
 	for _, o := range objects {
 		switch v := o.(type) {
 		case Text:
-			ø.ensureContentAddIsAllowed()
-			if !ø.withoutEscaping {
+			if err := ø.ensureContentAddIsAllowed(); err != nil {
+				return err
+			}
+			if !ø.Is(WithoutEscaping) {
 				v = Text(html.EscapeString(string(v)))
 			}
 			ø.inner = append(ø.inner, v)
 		case Html:
-			ø.ensureContentAddIsAllowed()
+			if err := ø.ensureContentAddIsAllowed(); err != nil {
+				return err
+			}
 			ø.inner = append(ø.inner, v)
 		case Comment:
 			ø.Comment = v
@@ -323,37 +334,47 @@ func (ø *Element) Add(objects ...Stringer) {
 		case Attrs:
 			ø.addAttr(v)
 		case Class:
-			ø.AddClass(v)
+			if err := ø.AddClass(v); err != nil {
+				return err
+			}
 		case Id:
-			ø.SetId(v)
+			if err := ø.SetId(v); err != nil {
+				return err
+			}
 		case Style:
 			ø.addStyle(v)
 		case Styles:
 			ø.addStyle(v)
 		case *Css:
-			ø.ApplyCss(v)
+			if err := ø.ApplyCss(v); err != nil {
+				return err
+			}
 		default:
-			ø.ensureParentIsSetAndContentIsAllowed(v)
+			if err := ø.ensureParentIsSetAndContentIsAllowed(v); err != nil {
+				return err
+			}
 			ø.inner = append(ø.inner, v)
 		}
 	}
+	return
 }
 
 // sets the inner content of a tag
 // objects may be Text, Html, *Element, Attr, Attrs, Style, Styles, Css, Id, Class
-func (ø *Element) Set(objects ...Stringer) {
+func (ø *Element) Set(objects ...Stringer) (err error) {
 	ø.inner = []Stringer{}
 	ø.classes = []Class{}
-	ø.Add(objects...)
+	return ø.Add(objects...)
 }
 
 // use this func to set the id of the tag,
 // do not set it via Attr directly
-func (ø *Element) SetId(id Id) {
-	if ø.idForbidden {
-		panicf("id not allowed for tag %s", ø.tag)
+func (ø *Element) SetId(id Id) (err error) {
+	if ø.Is(IdForbidden) {
+		return fmt.Errorf("id not allowed for tag %s", ø.tag)
 	}
 	ø.id = id
+	return
 }
 
 func (ø *Element) classAttrString(classes []Class) (s string) {
@@ -409,13 +430,14 @@ func (ø *Element) SetClass(classes ...Class) {
 
 // use this func to add the classes of the tag,
 // do not set it via Attr directly
-func (ø *Element) AddClass(classes ...Class) {
-	if ø.classForbidden {
-		panicf("class not allowed for tag %s", ø.tag)
+func (ø *Element) AddClass(classes ...Class) (err error) {
+	if ø.Is(ClassForbidden) {
+		return fmt.Errorf("class not allowed for tag %s", ø.tag)
 	}
 	for _, cl := range classes {
 		ø.classes = append(ø.classes, cl)
 	}
+	return
 }
 
 // returns the classes
@@ -426,7 +448,7 @@ func (ø *Element) Id() Id { return ø.id }
 
 // returns the html with inner content
 func (ø *Element) String() (res string) {
-	if ø.withoutDecoration {
+	if ø.Is(WithoutDecoration) {
 		return ø.InnerHtml()
 	}
 	commentpre := ""
@@ -435,11 +457,11 @@ func (ø *Element) String() (res string) {
 		commentpre = fmt.Sprintf("<!-- Begin: %s -->", ø.Comment)
 		commentpost = fmt.Sprintf("<!-- End: %s -->", ø.Comment)
 	}
-	if ø.selfclosing {
+	if ø.Is(SelfClosing) {
 		res = fmt.Sprintf("%s<%s%s />%s", commentpre, string(ø.tag), ø.attrsString(), commentpost)
 	} else {
 		str := "%s<%s%s>%s</%s>%s"
-		if !ø.inline {
+		if !ø.Is(Inline) {
 			str = "\n%s<%s%s>%s</%s>%s\n"
 		}
 		res = fmt.Sprintf(str, commentpre, string(ø.tag), ø.attrsString(), ø.InnerHtml(), string(ø.tag), commentpost)
@@ -450,13 +472,13 @@ func (ø *Element) String() (res string) {
 // prepare the id attribute for output
 func (ø *Element) attrsString() (res string) {
 	res = ""
-	if !ø.idForbidden && ø.id != "" {
+	if !ø.Is(IdForbidden) && ø.id != "" {
 		res += Attr{"id", string(ø.id)}.String()
 	}
-	if !ø.classForbidden && len(ø.classes) > 0 {
+	if !ø.Is(ClassForbidden) && len(ø.classes) > 0 {
 		res += Attr{"class", ø.classAttrString(ø.classes)}.String()
 	}
-	if !ø.invisible && len(ø.style) > 0 {
+	if !ø.Is(Invisible) && len(ø.style) > 0 {
 		res += Attr{"style", ø.styleAttrString(ø.style)}.String()
 	}
 
