@@ -8,6 +8,7 @@ type Template struct {
 	placeholderCache map[Id]*Element
 }
 
+// creates a new template with the given element as root
 func NewTemplate(t *Element) *Template {
 	return &Template{
 		Element:          t,
@@ -42,6 +43,12 @@ func (ø *Template) cacheFragement(id Id) (err error) {
 	return
 }
 
+// replaces the content of an child Element with the given id with Stringer e.g.
+//
+// 	t := NewTemplate(Body(Div(Id("content"))))
+// 	t.Assign("content", P(Text("here we go")))
+//
+// results in <body><div id="content"><p>here we go</p></div></body>
 func (ø *Template) Assign(id Id, html Stringer) (err error) {
 	if ø.placeholderCache[id] == nil {
 		if err = ø.cacheFragement(id); err != nil {
@@ -54,6 +61,7 @@ func (ø *Template) Assign(id Id, html Stringer) (err error) {
 }
 
 // add css to the head of the template
+// returns an error if Element is no doc or has no head child
 func (ø *Template) AddCss(css Stringer) (err error) {
 	if ø.Element.tag != "doc" {
 		return fmt.Errorf("can't add Css only to doc pseudotag, not %s", ø.Element.Tag())

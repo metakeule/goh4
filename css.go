@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// interface for a parent of a Css
+// interface for a parent of a Css -
 // is implemented by Css but allows
 // your own implementation and interception
 // of method calls
@@ -15,6 +15,11 @@ type CssParenter interface {
 	Selector() string
 }
 
+// Describes a CSS Statement, consisting of
+// a selector and the styles. Most of the time
+// you'll want to give it a Class()
+// It can have multiple tags. The Context if set is
+// added before the selector(s).
 type Css struct {
 	class   Class
 	Context Context
@@ -24,6 +29,19 @@ type Css struct {
 	parents []CssParenter
 }
 
+// creates a new Css, based on Stringer objects.
+// the following types are handled in a special way
+//
+// 	- Context: sets the context
+// 	- Tag: adds a single tag
+// 	- Tags: adds multiple tags
+// 	- Style: adds a single style
+// 	- Styles: adds multiple styles
+// 	- Class: sets the class
+// 	- Comment: sets the comment
+//
+// the rest is casted to CssParenter and on success
+// the Css inherits from that
 func NewCss(objects ...Stringer) (c *Css) {
 	c = &Css{
 		Tags:    Tags{},
@@ -93,6 +111,7 @@ func (ø *Css) partialSelector(t string) string {
 	return sel
 }
 
+// constructs and returns the selector
 func (ø *Css) Selector() (s string) {
 	if len(ø.Tags) > 0 {
 		selectors := []string{}
@@ -140,6 +159,7 @@ func (ø *Css) styleString() (r string) {
 	return
 }
 
+// return the Css as stylesheet string
 func (ø *Css) String() string {
 	descr := ""
 	if ø.Comment() != "" {
@@ -148,13 +168,16 @@ func (ø *Css) String() string {
 	return fmt.Sprintf("\n%s%s {\n%s}\n", descr, ø.Selector(), ø.styleString())
 }
 
-// set the styles
+// set the styles, they are given in pairs, e.g.
+//
+// 	Set("color","green","width","200")
 func (ø *Css) Set(vals ...string) {
 	for i := 0; i < len(vals); i = i + 2 {
 		ø.styles[vals[i]] = vals[i+1]
 	}
 }
 
+// returns the styles that are inherited (own overwrites are not respected)
 func (ø *Css) InheritedStyles() map[string]string {
 	inherited := map[string]string{}
 	for _, p := range ø.parents {
@@ -165,10 +188,12 @@ func (ø *Css) InheritedStyles() map[string]string {
 	return inherited
 }
 
+// returns the styles that are not inherited
 func (ø *Css) OwnStyles() map[string]string {
 	return ø.styles
 }
 
+// returns the styles with the inherited, overwritten by the own
 func (ø *Css) Styles() map[string]string {
 	consolidated := map[string]string{}
 	for _, p := range ø.parents {
@@ -182,7 +207,7 @@ func (ø *Css) Styles() map[string]string {
 	return consolidated
 }
 
-// let the rule inherit from the given
+// lets the Css inherit from the given CssParenter
 func (ø *Css) InheritFrom(r CssParenter) {
 	ø.parents = append(ø.parents, r)
 }

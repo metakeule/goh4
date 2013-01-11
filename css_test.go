@@ -5,6 +5,57 @@ import (
 	"testing"
 )
 
+// create an element with a simple self defined tag
+func ExampleNewCss() {
+	css := NewCss(
+		Class("active"),
+		Tags{"a:hover", "li"}, // single tag with Tag("li")
+		Comment("highlight activation"),
+		Context("#content"),   // is simply prefixed to the selector
+		Style{"color", "red"}) // multiple styles with Styles{"color","red","width","200"}
+
+	fmt.Println(css)
+	// Output: /* highlight activation */
+	// #content a:hover.active,
+	// #content li.active {
+	// 	color: red;
+	// }
+}
+
+// inherit from others
+func ExampleNewCss_inherited() {
+	red := NewCss(Style{"color", "red"})
+
+	highlight := NewCss(
+		Class("highlight"),
+		red)
+
+	css := NewCss(
+		Class("active"), highlight) // css inherits from red via highlight, multiple inheritance possible
+
+	fmt.Println(css)
+	// Output: .active {
+	// 	color: red;	/* inherited from ».highlight« */
+	// }
+}
+
+// overwrite inherited properties
+func ExampleNewCss_overwritten() {
+	red := NewCss(
+		Class("redder"),
+		Style{"color", "red"})
+
+	css := NewCss(
+		Class("active"),
+		red,
+		Style{"color", "green"}) // only the same keys are overwritten
+
+	fmt.Println(css)
+	// Output: .active {
+	// 	color: green;
+	// }
+}
+
 func TestNewCss(t *testing.T) {
 	var exspectedString string
 	font := NewCss(Class("default"), Style{"font-size", "12px"})

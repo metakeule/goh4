@@ -1,8 +1,9 @@
-package goh4
+// Copyright 2009 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 /*
-
-Packgae goh4 constructs html element trees (something like DOM), html templates and integrates them with css rules.
+Package goh4 constructs html element trees (something like DOM), html templates and integrates them with css rules.
 All of them are done by using types, not strings. This makes reuse and shortcuts easy.
 
 It is easy to extend goh4 and build upon it and you may bring in some html and css strings as well.
@@ -104,17 +105,8 @@ don't forget to put your css into the template
 	doc.AddCss(css)
 	doc.String()
 
+this results in the following (no auto indentation at the moment, sorry):
+
 */
-// this results in the following (no auto indentation at the moment, sorry):
-//
-// 		<head>
-// 			<style>
-//          /* make ugly buttons */
-// 					a.yellow-button,
-// 					button.yellow-button {
-// 						font-size: 20;	/* inherited from ».default-font-size« */
-// 						background-color: yellow;
-// 					}
-// 			</style>
-// 		</head>
-// 		<body><!-- Begin: ugly button --><a class="yellow-button"></a><!-- End: ugly button --></body>
+
+package goh4

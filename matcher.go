@@ -121,7 +121,7 @@ func (ø Attr) Matches(t *Element) bool {
 		}
 		return m
 	}
-	if t.Attributes[ø.Key] == ø.Value {
+	if t.attributes[ø.Key] == ø.Value {
 		return true
 	}
 	return false

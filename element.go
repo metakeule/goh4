@@ -17,8 +17,8 @@ const (
 	Inline                             // element is an inline element (only for visible elements)
 	Field                              // element is a field of a form
 	Invisible                          // element doesn't render anything visible
-	WithoutEscaping                    // for content that is not escaped
-	WithoutDecoration                  // for tags like doc that won't show up as tags, but show their content
+	WithoutEscaping                    // element does not escape inner Text
+	WithoutDecoration                  // element just prints the InnerHtml
 )
 
 var flagNames = map[flag]string{
@@ -37,18 +37,26 @@ func (ø flag) String() string {
 	return flagNames[ø]
 }
 
-// allows the Parent of an Element to be exchanged
 type Pather interface {
 	Path() string
 }
 type Tager interface {
 	Tag() string
 }
+
+// a Csser might be applied as Css to an Element
 type Csser interface {
 	Matcher
 	Class() string
 }
 
+// an Elementer might be parent of an Element
+// by implementing a type that fulfills this interface
+// you might peek into the execution.
+// when String() method is called, the html of the
+// tree is built and when SetParent() it is embedded in another Elementer
+// it could be combined with the Pather interface that allows you to modify specific
+// css selectors for any children Elements
 type Elementer interface {
 	Stringer
 	Tager
@@ -56,8 +64,9 @@ type Elementer interface {
 	SetParent(Pather)
 }
 
+// the base of what becomes a tag when printed
 type Element struct {
-	Attributes map[string]string
+	attributes map[string]string
 	Comment    Comment
 	parent     Pather
 	classes    []Class
@@ -69,14 +78,27 @@ type Element struct {
 	tag        Tag
 }
 
-// contruct a new element with some flags
-// use this method inside a func that adds as helper to generate a certain element, e.g.
-// func Input() *Element { return NewElement(Tag("input"), Inline|Field|SelfClosing, Attrs{"name", "myinput"}) }
-// or
-// func Input() *Element { return NewElement(Tag("input"), Inline,Field,SelfClosing, Attrs{"name", "myinput"}) }
+// contruct a new element with some flags.
+//
+// the tag constructors A(), Body(),... use these method, see tags.go file for examples
+//
+// use it for your own tags
+//
+// the following flags are supported
+//
+// 	IdForbidden                        // element should not have an id attribute
+// 	ClassForbidden                     // element should not have a class attribute
+// 	SelfClosing                        // element is selfclosing and contains no content
+// 	Inline                             // element is an inline element (only for visible elements)
+// 	Field                              // element is a field of a form
+// 	Invisible                          // element doesn't render anything visible
+// 	WithoutEscaping                    // element does not escape inner Text
+// 	WithoutDecoration                  // element just prints the InnerHtml
+//
+// see Add() and Set() methods for how to modify the Element
 func NewElement(tag Tag, flags ...flag) (ø *Element) {
 	ø = &Element{
-		Attributes: map[string]string{},
+		attributes: map[string]string{},
 		tag:        tag,
 		flags:      hasDefaults,
 		style:      map[string]string{},
@@ -89,17 +111,17 @@ func NewElement(tag Tag, flags ...flag) (ø *Element) {
 	return
 }
 
-func ExampleNewElement() {
-	fmt.Println("The output of\nthis example.")
-	// Output: The output of
-	// this example.
-}
-
+// checks if a given flag is set, e.g.
+//
+// 	Is(Inline)
+//
+// checks for the Inline flag
 func (ø *Element) Is(f flag) bool {
 	return ø.flags&f != 0
 }
 
-// returns the fields of a form,
+// returns the fields of a form
+// returns empty array if Element is no form
 func (ø *Element) Fields() (fields []*Element) {
 	if ø.tag != "form" {
 		return []*Element{}
@@ -109,6 +131,22 @@ func (ø *Element) Fields() (fields []*Element) {
 
 func (ø *Element) Parent() Pather {
 	return ø.parent
+}
+
+// sets the attribute k to v as long as k is not "id" or "class"
+// use SetId() to set the id and AddClass() to add a class
+func (ø *Element) SetAttribute(k, v string) {
+	if k != "id" && k != "class" {
+		ø.attributes[k] = v
+	}
+}
+
+func (ø *Element) Attribute(k string) string {
+	return ø.attributes[k]
+}
+
+func (ø *Element) Attributes() map[string]string {
+	return ø.attributes
 }
 
 func (ø *Element) SetParent(parent Pather) {
@@ -127,7 +165,7 @@ func (ø *Element) Path() string {
 	return fmt.Sprintf(parentPath+"%s%s%s", ø.tag, ø.idPath(), ø.classPath(ø.classes))
 }
 
-// create a css with context set to Path()
+// creates a Css with Context set to Path()
 func (ø *Element) NewCss(objects ...Stringer) *Css {
 	objects = append(objects, Context(ø.Path()))
 	return NewCss(objects...)
@@ -141,7 +179,7 @@ func (ø *Element) idPath() (s string) {
 	return
 }
 
-// return false if the given parent tag is not allowed
+// return false if the given Parent tag is not allowed for Elements tag
 func (ø *Element) IsParentAllowed(parent Tager) (allowed bool) {
 	if len(ø.parentTags) == 0 {
 		return true
@@ -177,25 +215,13 @@ func (ø *Element) addStyle(styles ...interface{}) {
 	}
 }
 
-// adds attributes, same keys are overwritten
-func (ø *Element) addAttr(attrs ...interface{}) {
-	for _, a := range attrs {
-		switch v := a.(type) {
-		case Attr:
-			ø.Attributes[v.Key] = v.Value
-		case Attrs:
-			st := v.ToAttrArr()
-			for _, attr := range st {
-				ø.Attributes[attr.Key] = attr.Value
-			}
-		case string:
-			ar := strings.Split(v, "=")
-			ø.Attributes[ar[0]] = strings.Replace(ar[1], `"`, ``, 2)
-		}
-	}
-}
-
-// apply the css to the element
+// apply the css to the element, i.e. add the class of the Css to the Element
+//
+// returns an error if the Css has no class or if the Css will not match
+// the Element because of its tags or its context
+// beware that it will always fail if the Css has a context, because the
+// matcher can't properly figure out if an element is within a context
+// that remains to be done (but requires a proper css selector parser)
 func (ø *Element) ApplyCss(rules ...Csser) (err error) {
 	for _, r := range rules {
 		if r.Class() == "" {
@@ -213,6 +239,7 @@ func (ø *Element) ApplyCss(rules ...Csser) (err error) {
 	return
 }
 
+// returns an error if the Element is self closing
 func (ø *Element) ensureContentAddIsAllowed() (err error) {
 	if ø.Is(SelfClosing) {
 		return fmt.Errorf("add not allowed for tag »%s«", ø.tag)
@@ -220,6 +247,7 @@ func (ø *Element) ensureContentAddIsAllowed() (err error) {
 	return
 }
 
+// adds Elementer to the inner content at position pos
 func (ø *Element) AddAtPosition(pos int, v Elementer) (err error) {
 	if pos < 0 || pos > len(ø.inner)-1 {
 		return fmt.Errorf("position %v out of range", pos)
@@ -243,6 +271,7 @@ func (ø *Element) AddAtPosition(pos int, v Elementer) (err error) {
 	return
 }
 
+// make sure the parent is set and content is allowed
 func (ø *Element) ensureParentIsSetAndContentIsAllowed(v Stringer) error {
 	e, isElementer := v.(Elementer)
 	if isElementer {
@@ -254,6 +283,7 @@ func (ø *Element) ensureParentIsSetAndContentIsAllowed(v Stringer) error {
 	return ø.ensureContentAddIsAllowed()
 }
 
+// set the Elementer to the inner content at position pos and overwrite the current content at that position
 func (ø *Element) SetAtPosition(pos int, v Elementer) (err error) {
 	if pos < 0 || pos > len(ø.inner)-1 {
 		return fmt.Errorf("position %v out of range", pos)
@@ -265,6 +295,9 @@ func (ø *Element) SetAtPosition(pos int, v Elementer) (err error) {
 	return
 }
 
+// sets the Elementer to the last position of the inner content and overwrites the current content at that position
+//
+// If you want to append to the inner content, use Add() instead
 func (ø *Element) SetBottom(v Elementer) (err error) {
 	if err := ø.ensureParentIsSetAndContentIsAllowed(v); err != nil {
 		return err
@@ -273,7 +306,7 @@ func (ø *Element) SetBottom(v Elementer) (err error) {
 	return
 }
 
-// returns -1 if element could not be found
+// returns the position of the Element in the inner content. if it could not be found, the last parameter is false
 func (ø *Element) PositionOf(v *Element) (pos int, found bool) {
 	m := &PositionMatcher{Element: v}
 	_, _ = ø.Any(m)
@@ -282,6 +315,8 @@ func (ø *Element) PositionOf(v *Element) (pos int, found bool) {
 	return
 }
 
+// adds Elementer at the position before the Element in the inner content
+// the following elements are moved down
 func (ø *Element) AddBefore(v *Element, nu Elementer) (err error) {
 	pos, found := ø.PositionOf(v)
 	if !found {
@@ -293,6 +328,8 @@ func (ø *Element) AddBefore(v *Element, nu Elementer) (err error) {
 	return ø.AddAtPosition(pos, nu)
 }
 
+// adds Elementer at the position before the Element in the inner content
+// the following elements are moved down
 func (ø *Element) AddAfter(v *Element, nu Elementer) (err error) {
 	pos, found := ø.PositionOf(v)
 	if !found {
@@ -309,8 +346,26 @@ func (ø *Element) AddAfter(v *Element, nu Elementer) (err error) {
 	return
 }
 
-// add new inner content to a tag
-// objects may be Text, Html, *Element, Attr, Attrs, Style, Styles, Css, Id, Class
+// adds new inner content or properties based on Stringer objects and returns an error if changes could not be applied
+//
+// the following types are handled in a special way:
+//
+//  - Comment: sets the comment
+//  - Style: set a single style
+//  - Styles: sets multiple styles
+//  - Attr: set a single attribute   // do not set id or class via Attr(s) directly, use Id() and Class() instead
+//  - Attrs: sets multiple attribute
+//  - Class: adds a class
+//  - Id: sets the id
+//  - *Css: applies the css, see ApplyCss()
+//
+// the following types are added to  the inner content:
+//
+// 	- Text: ís escaped if the WithoutEscaping flag isn't set
+// 	- Html: is never escaped
+//
+// If the Stringer can be casted to an Elementer (as Element can), it is added to the inner content as well
+// otherwise it is handled like Text(), that means any type implementing Stringer can be added as (escaped) text
 func (ø *Element) Add(objects ...Stringer) (err error) {
 	for _, o := range objects {
 		switch v := o.(type) {
@@ -330,9 +385,12 @@ func (ø *Element) Add(objects ...Stringer) (err error) {
 		case Comment:
 			ø.Comment = v
 		case Attr:
-			ø.addAttr(v)
+			ø.SetAttribute(v.Key, v.Value)
 		case Attrs:
-			ø.addAttr(v)
+			attrs := v.ToAttrArr()
+			for _, attr := range attrs {
+				ø.SetAttribute(attr.Key, attr.Value)
+			}
 		case Class:
 			if err := ø.AddClass(v); err != nil {
 				return err
@@ -350,25 +408,39 @@ func (ø *Element) Add(objects ...Stringer) (err error) {
 				return err
 			}
 		default:
-			if err := ø.ensureParentIsSetAndContentIsAllowed(v); err != nil {
+			if err := ø.ensureContentAddIsAllowed(); err != nil {
 				return err
 			}
-			ø.inner = append(ø.inner, v)
+			if err := ø.ensureParentIsSetAndContentIsAllowed(v); err == nil {
+				// no error: is an Elementer
+				ø.inner = append(ø.inner, v)
+			} else {
+				// handle it like untyped string
+				s := Text(v.String())
+
+				if !ø.Is(WithoutEscaping) {
+					s = Text(html.EscapeString(v.String()))
+				}
+				ø.inner = append(ø.inner, s)
+			}
 		}
 	}
 	return
 }
 
-// sets the inner content of a tag
-// objects may be Text, Html, *Element, Attr, Attrs, Style, Styles, Css, Id, Class
+// clears the inner object array and the classes
+// and then calles Add() method to change the Element
+//
+// see Add() method for more details
 func (ø *Element) Set(objects ...Stringer) (err error) {
 	ø.inner = []Stringer{}
 	ø.classes = []Class{}
 	return ø.Add(objects...)
 }
 
-// use this func to set the id of the tag,
+// use this func to set the id of the Element,
 // do not set it via Attr directly
+// returns error if IdForbidden flag is set
 func (ø *Element) SetId(id Id) (err error) {
 	if ø.Is(IdForbidden) {
 		return fmt.Errorf("id not allowed for tag %s", ø.tag)
@@ -421,8 +493,8 @@ func (ø *Element) RemoveClass(class Class) {
 	}
 }
 
-// use this func to set the classes of the tag,
-// do not set it via Attr directly
+// use this func to set the classes of the Element
+// do not set them via Attr directly
 func (ø *Element) SetClass(classes ...Class) {
 	ø.classes = []Class{}
 	ø.AddClass(classes...)
@@ -440,13 +512,15 @@ func (ø *Element) AddClass(classes ...Class) (err error) {
 	return
 }
 
-// returns the classes
+// use this method to get the classes since they won't show up in attributes
 func (ø *Element) Classes() (c []Class) {
 	return ø.classes
 }
+
+// use this method to get the id since it won't show up in attributes
 func (ø *Element) Id() Id { return ø.id }
 
-// returns the html with inner content
+// returns the html with inner content (and the own tags if WithoutDecoration is not set)
 func (ø *Element) String() (res string) {
 	if ø.Is(WithoutDecoration) {
 		return ø.InnerHtml()
@@ -482,7 +556,7 @@ func (ø *Element) attrsString() (res string) {
 		res += Attr{"style", ø.styleAttrString(ø.style)}.String()
 	}
 
-	for k, v := range ø.Attributes {
+	for k, v := range ø.attributes {
 		res += Attr{k, v}.String()
 	}
 	return
@@ -496,6 +570,7 @@ func (ø *Element) InnerHtml() (res string) {
 	return
 }
 
+// returns only children that are Elements, no Text or Html
 func (ø *Element) Children() (c []*Element) {
 	c = []*Element{}
 	if len(ø.inner) == 0 {

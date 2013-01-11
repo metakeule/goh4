@@ -1,6 +1,7 @@
 package goh4
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -80,12 +81,12 @@ func TestElementAdd(t *testing.T) {
 		Styles{"color", "green", "zoom", "1"},
 		Attrs{"height", "300", "width", "200"})
 
-	if a.Attributes["height"] != "300" {
-		err(t, "incorrect height", a.Attributes["height"], "300")
+	if a.attributes["height"] != "300" {
+		err(t, "incorrect height", a.attributes["height"], "300")
 	}
 
-	if a.Attributes["width"] != "200" {
-		err(t, "incorrect width", a.Attributes["width"], "200")
+	if a.attributes["width"] != "200" {
+		err(t, "incorrect width", a.attributes["width"], "200")
 	}
 
 	if a.Id() != "myid" {
@@ -259,6 +260,86 @@ func TestAddAtPosition(t *testing.T) {
 		err(t, "incorrect result for AddAtPosition", div2.inner[4], a)
 	}
 
+}
+
+// create an element with a simple self defined tag
+func ExampleNewElement() {
+	t := NewElement(Tag("special"))
+	fmt.Println(t)
+	// Output: <special></special>
+}
+
+// a selfclosing tag can't have content
+func ExampleNewElement_selfclosing() {
+	t := NewElement(Tag("special"), SelfClosing)
+	fmt.Println(t)
+	if err := t.Add(Text("will fail")); err != nil {
+		fmt.Println("can't add to selfclosing element")
+	}
+	// Output: <special />
+	// can't add to selfclosing element
+}
+
+// multiple flags may be passed with bitwise or | and as several parameters
+func ExampleNewElement_multipleFlags() {
+	t := NewElement(Tag("input"), SelfClosing|Inline, Field)
+	fmt.Println(t)
+	// Output: <input />
+}
+
+// create an element that does not output it tags when printed
+func ExampleNewElement_withoutDecoration() {
+	doc := NewElement(Tag("doc"), WithoutDecoration)
+
+	layout := NewTemplate(doc)
+
+	doc.Set(
+		Html("<!DOCTYPE html>"),
+		Body(
+			Id("content")),
+		Html("</html>"))
+
+	layout.Assign("content", Text("in the body"))
+	fmt.Println(layout)
+
+	// Output: <!DOCTYPE html>
+	// <body id="content">in the body</body>
+	// </html>
+}
+
+// html, text and elementer are added as inner content
+func ExampleElement_Add() {
+	div := Div()
+
+	div.Add(
+		Html("<b>hello</b>"), // is not escaped
+		Text("c > d"),        // is escaped
+		Span(Text("hiho")))   // objects to tag constructors like Div(), Span(),... gets passed to Add()
+
+	fmt.Println(div)
+	// Output: <div><b>hello</b>c &gt; d<span>hiho</span></div>
+}
+
+// add / set properties
+func ExampleElement_Add_properties() {
+	css := NewCss(Class("yellow"), Style{"background-color", "yellow"})
+	d := Div(Class("first")) // objects to tag constructors like Div(), Body(),... gets passed to Add()
+
+	d.Add(
+		Id("main"),
+		Class("second"),
+		css, // adds the class of the css to the element, multiple *Css can be given
+		Comment("main row"),
+		Attr{"height", "200"},   // multiple attributes at once with Attrs{"height", "200", "width", "300"}
+		Style{"width", "500px"}) // multiple styles at once with Styles{"height", "200", "width", "300"}
+
+	fmt.Printf("---CSS---%s---HTML---%s\n", css, d)
+	// Output: ---CSS---
+	// .yellow {
+	// 	background-color: yellow;
+	// }
+	// ---HTML---
+	// <!-- Begin: main row --><div id="main" class="first second yellow " style="width: 500px;" height="200"></div><!-- End: main row -->
 }
 
 func TestSetAtPosition(t *testing.T) {
