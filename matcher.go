@@ -41,7 +41,7 @@ func (ø Class) Matches(t *Element) bool {
 	return false
 }
 
-// Bug(m) if Css has a Context, matching always fails
+// if Css has a Context, matching always fails
 func (ø *Css) Matches(t *Element) (m bool) {
 	if ø.Context != "" {
 		// if Css has a Context, matching always fails
