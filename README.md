@@ -1,7 +1,7 @@
 goh4
 ====
 
-html and css generation for golang with functions, e.g.
+type save html and css generation for golang with functions, e.g.
 
 	font := NewCss(
 		Class("default-font"),

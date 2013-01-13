@@ -88,7 +88,7 @@ Element and Template are structs you can inherit from them, e.g.
 		// do your thing here
 	}
 
-If you want typesafe reusable css, you can use Css.
+If you want type save reusable css, you can use Css.
 
 	fontsize := NewCss(Class("default-font-size"),Styles{"font-size","20"})
 	css := NewCss(
