@@ -47,6 +47,9 @@ TODO
 
 - more element contruction helpers
 - check element contruction helpers against w3c specs
+- contruction helpers for the various doctypes
+- support for html tidy
+- correct handling of css contexts for matching elements, needs a css selector parser
 - test all the matchers
 - add tools with
 	- initializr / html boilerplate
