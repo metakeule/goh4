@@ -44,7 +44,7 @@ func TestCssMatch(t *testing.T) {
 	}
 }
 
-func Example_Css_template() {
+func ExampleCss_template() {
 	fontsize := NewCss(Class("default-font-size"), Styles{"font-size", "20"})
 	css := NewCss(
 		Class("yellow-button"),
