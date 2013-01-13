@@ -163,7 +163,7 @@ func (ø *Css) styleString() (r string) {
 func (ø *Css) String() string {
 	descr := ""
 	if ø.Comment() != "" {
-		descr += fmt.Sprintf("\n\n/* %s */\n", ø.Comment())
+		descr += fmt.Sprintf("\n/* %s */\n", ø.Comment())
 	}
 	return fmt.Sprintf("\n%s%s {\n%s}\n", descr, ø.Selector(), ø.styleString())
 }

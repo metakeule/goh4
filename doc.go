@@ -1,4 +1,4 @@
-// Copyright 2009 The Go Authors. All rights reserved.
+// Copyright 2013 Marc René Arns. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -7,6 +7,9 @@ Package goh4 constructs html element trees (something like DOM), html templates 
 All of them are done by using types, not strings. This makes reuse and shortcuts easy.
 
 It is easy to extend goh4 and build upon it and you may bring in some html and css strings as well.
+
+Elements
+
 
 There are some helper functions to generate elements for you. For instance
 
@@ -56,6 +59,9 @@ Then you may get all the nice methods of element
 
 You may define your own Matcher and pass it to All() and Any().
 
+Templates and Css
+
+
 Template is an element that can Assign() anything that can be inside
 an element to any element within the tree, that has the given Id().
 
@@ -89,7 +95,6 @@ If you want typesafe reusable css, you can use Css.
 		Class("yellow-button"),
 		Tags{"a","button"},
 		Styles{"background-color","yellow"},
-		Comment("make ugly buttons"),
 		fontsize)
 
 and then you might apply it to your elements.
@@ -101,12 +106,21 @@ and then you might apply it to your elements.
 don't forget to put your css into the template
 (we don't put fontsize into it, since it is only a building block)
 
-	doc := NewTemplate(Doc(Head(),Body(a))
+	doc := NewTemplate(Doc(Head(),Body(a)))
 	doc.AddCss(css)
 	doc.String()
 
 this results in the following (no auto indentation at the moment, sorry):
 
+	<head>
+		<style>
+			a.yellow-button,
+			button.yellow-button {
+				background-color: yellow;
+				font-size: 20;	\/* inherited from ».default-font-size« *\/
+			}
+		</style>
+	</head>
+	<body><a class="yellow-button"></a></body>
 */
-
 package goh4

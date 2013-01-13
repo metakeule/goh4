@@ -22,6 +22,55 @@ func ExampleNewCss() {
 	// }
 }
 
+func TestCssMatch(t *testing.T) {
+	css1 := NewCss(Class("beautyful"))
+
+	if !css1.Matches(A(css1)) {
+		err(t, "incorrect css matches", false, true)
+	}
+
+	if css1.Matches(A()) {
+		err(t, "incorrect css matches", true, false)
+	}
+
+	css2 := NewCss(Class("beautyful"), Tag("a"))
+
+	if !css2.Matches(A(css2)) {
+		err(t, "incorrect css matches with tag", false, true)
+	}
+
+	if css2.Matches(Li(css2)) {
+		err(t, "incorrect css matches with tag", true, false)
+	}
+}
+
+func Example_Css_template() {
+	fontsize := NewCss(Class("default-font-size"), Styles{"font-size", "20"})
+	css := NewCss(
+		Class("yellow-button"),
+		Tags{"a", "button"},
+		Comment("make ugly buttons"),
+		fontsize)
+	a := A()
+	a.ApplyCss(css)
+	a.String()
+	doc := NewTemplate(Doc(Head(), Body(a)))
+	doc.AddCss(css)
+	fmt.Println(doc)
+	// Output: <head>
+	// <style>
+	//
+	// /* make ugly buttons */
+	// a.yellow-button,
+	// button.yellow-button {
+	// 	font-size: 20;	/* inherited from ».default-font-size« */
+	// }
+	// </style>
+	// </head>
+	//
+	// <body><a class="yellow-button "></a></body>
+}
+
 // inherit from others
 func ExampleNewCss_inherited() {
 	red := NewCss(Style{"color", "red"})
