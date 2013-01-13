@@ -1,6 +1,8 @@
 goh4
 ====
 
+[![Build Status](https://secure.travis-ci.org/metakeule/goh4.png)](http://travis-ci.org/metakeule/goh4)
+
 type save html and css generation for golang with functions, e.g.
 
 	font := NewCss(
