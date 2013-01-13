@@ -17,9 +17,7 @@ type CssParenter interface {
 
 // Describes a CSS Statement, consisting of
 // a selector and the styles. Most of the time
-// you'll want to give it a Class()
-// It can have multiple tags. The Context if set is
-// added before the selector(s).
+// you'll want to give it a Class().
 type Css struct {
 	class   Class
 	Context Context
