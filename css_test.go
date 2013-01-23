@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// create an element with a simple self defined tag
+// create an element with a simple self defined  tag
 func ExampleNewCss() {
 	css := NewCss(
 		Class("active"),
