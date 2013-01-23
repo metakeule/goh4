@@ -48,18 +48,6 @@ func Tags(ø ...string) (a tags) {
 	return
 }
 
-/*
-type Tags []string
-
-func (ø Tags) ToTagArr() (a []tag) {
-	a = []tag{}
-	for _, s := range ø {
-		a = append(a, tag(s))
-	}
-	return
-}
-*/
-
 func removeWhiteSpace(in string) string {
 	reg := regexp.MustCompile(`\s`)
 	return reg.ReplaceAllString(in, "")

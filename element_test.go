@@ -282,7 +282,7 @@ func ExampleNewElement_selfclosing() {
 
 // multiple flags may be passed with bitwise or | and as several parameters
 func ExampleNewElement_multipleFlags() {
-	t := NewElement(Tag("input"), SelfClosing|Inline, Field)
+	t := NewElement(Tag("input"), SelfClosing|Inline, FormField)
 	fmt.Println(t)
 	// Output: <input />
 }

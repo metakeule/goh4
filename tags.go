@@ -82,7 +82,7 @@ func Img(objects ...Stringer) (t *Element) {
 	return
 }
 func Input(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("input"), Field, SelfClosing, Inline)
+	t = NewElement(Tag("input"), FormField, SelfClosing, Inline)
 	t.Set(objects...)
 	return
 }
@@ -129,7 +129,7 @@ func Script(objects ...Stringer) (t *Element) {
 	return
 }
 func Select(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("select"), Field, Inline)
+	t = NewElement(Tag("select"), FormField, Inline)
 	t.Set(objects...)
 	return
 }
@@ -167,7 +167,7 @@ func Td(objects ...Stringer) (t *Element) {
 	return
 }
 func Textarea(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("textarea"), Field)
+	t = NewElement(Tag("textarea"), FormField)
 	t.Set(objects...)
 	return
 }

@@ -15,7 +15,7 @@ const (
 	ClassForbidden                     // element should not have a class attribute
 	SelfClosing                        // element is selfclosing and contains no content
 	Inline                             // element is an inline element (only for visible elements)
-	Field                              // element is a field of a form
+	FormField                          // element is a field of a form
 	Invisible                          // element doesn't render anything visible
 	WithoutEscaping                    // element does not escape inner Text
 	WithoutDecoration                  // element just prints the InnerHtml
@@ -27,7 +27,7 @@ var flagNames = map[flag]string{
 	ClassForbidden:    "ClassForbidden",
 	SelfClosing:       "SelfClosing",
 	Inline:            "Inline",
-	Field:             "Field",
+	FormField:         "FormField",
 	Invisible:         "Invisible",
 	WithoutEscaping:   "WithoutEscaping",
 	WithoutDecoration: "WithoutDecoration",

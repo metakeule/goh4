@@ -30,7 +30,7 @@ func (ø *PositionMatcher) Matches(e *Element) (f bool) {
 
 type FieldMatcher int
 
-func (ø FieldMatcher) Matches(t *Element) (m bool) { return t.Is(Field) }
+func (ø FieldMatcher) Matches(t *Element) (m bool) { return t.Is(FormField) }
 
 func (ø Class) Matches(t *Element) bool {
 	for _, c := range t.classes {
