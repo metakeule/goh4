@@ -5,14 +5,14 @@ import (
 	"testing"
 )
 
-// create an element with a simple self defined  tag
+// create an element with a simple self defined tag
 func ExampleNewCss() {
 	css := NewCss(
 		Class("active"),
 		Tags("a:hover", "li"), // single tag with Tag("li")
 		Comment("highlight activation"),
-		Context("#content"),   // is simply prefixed to the selector
-		Style("color", "red")) // multiple styles with Style("color","red","width","200")
+		Context("#content"), // is simply prefixed to the selector
+		Style("color", "red"))
 
 	fmt.Println(css)
 	// Output: /* highlight activation */
