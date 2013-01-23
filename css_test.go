@@ -9,10 +9,10 @@ import (
 func ExampleNewCss() {
 	css := NewCss(
 		Class("active"),
-		Tags{"a:hover", "li"}, // single tag with Tag("li")
+		Tags("a:hover", "li"), // single tag with Tag("li")
 		Comment("highlight activation"),
 		Context("#content"),   // is simply prefixed to the selector
-		Style{"color", "red"}) // multiple styles with Styles{"color","red","width","200"}
+		Style("color", "red")) // multiple styles with Styles{"color","red","width","200"}
 
 	fmt.Println(css)
 	// Output: /* highlight activation */
@@ -45,10 +45,10 @@ func TestCssMatch(t *testing.T) {
 }
 
 func ExampleNewCss_template() {
-	fontsize := NewCss(Class("default-font-size"), Styles{"font-size", "20"})
+	fontsize := NewCss(Class("default-font-size"), Style("font-size", "20"))
 	css := NewCss(
 		Class("yellow-button"),
-		Tags{"a", "button"},
+		Tags("a", "button"),
 		Comment("make ugly buttons"),
 		fontsize)
 	a := A()
@@ -73,7 +73,7 @@ func ExampleNewCss_template() {
 
 // inherit from others
 func ExampleNewCss_inherited() {
-	red := NewCss(Style{"color", "red"})
+	red := NewCss(Style("color", "red"))
 
 	highlight := NewCss(
 		Class("highlight"),
@@ -92,12 +92,12 @@ func ExampleNewCss_inherited() {
 func ExampleNewCss_overwritten() {
 	red := NewCss(
 		Class("redder"),
-		Style{"color", "red"})
+		Style("color", "red"))
 
 	css := NewCss(
 		Class("active"),
 		red,
-		Style{"color", "green"}) // only the same keys are overwritten
+		Style("color", "green")) // only the same keys are overwritten
 
 	fmt.Println(css)
 	// Output: .active {
@@ -107,15 +107,15 @@ func ExampleNewCss_overwritten() {
 
 func TestNewCss(t *testing.T) {
 	var exspectedString string
-	font := NewCss(Class("default"), Style{"font-size", "12px"})
-	bg := NewCss(Class("bg"), Style{"background-color", "black"}, font)
+	font := NewCss(Class("default"), Style("font-size", "12px"))
+	bg := NewCss(Class("bg"), Style("background-color", "black"), font)
 
 	css := NewCss(
 		Context("#myid"),
 		Tag("ul"),
-		Tags{"ol", "li"},
-		Style{"color", "yellow"},
-		Styles{"width", "200", "height", "300"},
+		Tags("ol", "li"),
+		Style("color", "yellow"),
+		Style("width", "200", "height", "300"),
 		Class("special"), Comment("no comment"),
 		bg)
 
@@ -182,11 +182,11 @@ func makeCss(outer string, inner string) string {
 }
 
 func TestCssString(t *testing.T) {
-	s := Styles{"color", "green"}
+	s := Style("color", "green")
 	ss := "color:green;"
 	cl := Class("t")
 	ctx := Context("#my")
-	tags := Tags{"ul", "ol"}
+	tags := Tags("ul", "ol")
 	cmt := Comment("hiho")
 
 	var expected = map[*Css]string{

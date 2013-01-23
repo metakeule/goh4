@@ -72,7 +72,7 @@ type Element struct {
 	classes    []Class
 	id         Id
 	inner      []Stringer
-	parentTags []Tag
+	parentTags tags
 	style      map[string]string
 	flags      flag
 	tag        Tag
@@ -96,13 +96,13 @@ type Element struct {
 // 	WithoutDecoration                  // element just prints the InnerHtml
 //
 // see Add() and Set() methods for how to modify the Element
-func NewElement(tag Tag, flags ...flag) (ø *Element) {
+func NewElement(t Tag, flags ...flag) (ø *Element) {
 	ø = &Element{
 		attributes: map[string]string{},
-		tag:        tag,
+		tag:        t,
 		flags:      hasDefaults,
 		style:      map[string]string{},
-		parentTags: []Tag{},
+		parentTags: tags{},
 	}
 
 	for _, flag := range flags {
@@ -194,19 +194,18 @@ func (ø *Element) IsParentAllowed(parent Tager) (allowed bool) {
 }
 
 // adds css properties to the style attribute, same keys are overwritten
-func (ø *Element) addStyle(styles ...interface{}) {
+func (ø *Element) addStyle(styls ...interface{}) {
 	if ø.Is(Invisible) {
 		// can't set style for invisible tag
 		return
 	}
-	for _, s := range styles {
+	for _, s := range styls {
 		switch v := s.(type) {
-		case Style:
+		case style:
 			ø.style[v.Key] = v.Value
-		case Styles:
-			st := v.ToStyleArr()
-			for _, style := range st {
-				ø.style[style.Key] = style.Value
+		case styles:
+			for _, styl := range v {
+				ø.style[styl.Key] = styl.Value
 			}
 		case string:
 			a := strings.Split(v, ":")
@@ -384,12 +383,11 @@ func (ø *Element) Add(objects ...Stringer) (err error) {
 			ø.inner = append(ø.inner, v)
 		case Comment:
 			ø.Comment = v
-		case Attr:
+		case attr:
 			ø.SetAttribute(v.Key, v.Value)
-		case Attrs:
-			attrs := v.ToAttrArr()
-			for _, attr := range attrs {
-				ø.SetAttribute(attr.Key, attr.Value)
+		case attrs:
+			for _, atr := range v {
+				ø.SetAttribute(atr.Key, atr.Value)
 			}
 		case Class:
 			if err := ø.AddClass(v); err != nil {
@@ -399,9 +397,9 @@ func (ø *Element) Add(objects ...Stringer) (err error) {
 			if err := ø.SetId(v); err != nil {
 				return err
 			}
-		case Style:
+		case style:
 			ø.addStyle(v)
-		case Styles:
+		case styles:
 			ø.addStyle(v)
 		case *Css:
 			if err := ø.ApplyCss(v); err != nil {
@@ -468,7 +466,7 @@ func (ø *Element) classPath(classes []Class) (s string) {
 func (ø *Element) styleAttrString(styles map[string]string) (s string) {
 	s = ""
 	for k, v := range styles {
-		s += Style{k, v}.String()
+		s += style{k, v}.String()
 	}
 	return
 }
@@ -547,17 +545,17 @@ func (ø *Element) String() (res string) {
 func (ø *Element) attrsString() (res string) {
 	res = ""
 	if !ø.Is(IdForbidden) && ø.id != "" {
-		res += Attr{"id", string(ø.id)}.String()
+		res += attr{"id", string(ø.id)}.String()
 	}
 	if !ø.Is(ClassForbidden) && len(ø.classes) > 0 {
-		res += Attr{"class", ø.classAttrString(ø.classes)}.String()
+		res += attr{"class", ø.classAttrString(ø.classes)}.String()
 	}
 	if !ø.Is(Invisible) && len(ø.style) > 0 {
-		res += Attr{"style", ø.styleAttrString(ø.style)}.String()
+		res += attr{"style", ø.styleAttrString(ø.style)}.String()
 	}
 
 	for k, v := range ø.attributes {
-		res += Attr{k, v}.String()
+		res += attr{k, v}.String()
 	}
 	return
 }

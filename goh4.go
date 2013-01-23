@@ -38,85 +38,93 @@ type Tag string
 
 func (ø Tag) String() string { return string(ø) }
 
-type Tags []string
+type tags []Tag
 
-func (ø Tags) ToTagArr() (a []Tag) {
-	a = []Tag{}
+func Tags(ø ...string) (a tags) {
+	a = tags{}
 	for _, s := range ø {
 		a = append(a, Tag(s))
 	}
 	return
 }
 
+/*
+type Tags []string
+
+func (ø Tags) ToTagArr() (a []tag) {
+	a = []tag{}
+	for _, s := range ø {
+		a = append(a, tag(s))
+	}
+	return
+}
+*/
+
 func removeWhiteSpace(in string) string {
 	reg := regexp.MustCompile(`\s`)
 	return reg.ReplaceAllString(in, "")
 }
 
-func (ø Tags) String() string {
-	return strings.Join(ø, ", ")
+func (ø tags) String() string {
+	str := []string{}
+	for _, t := range ø {
+		str = append(str, t.String())
+	}
+	return strings.Join(str, ", ")
 }
 
-type Style struct {
+type style struct {
 	Key   string
 	Value string
 }
 
-func (ø Style) String() string { return ø.Key + ": " + ø.Value + ";" }
+func (ø style) String() string { return ø.Key + ": " + ø.Value + ";" }
+
+type styles []style
+
+func (ø styles) String() (s string) {
+	ss := []string{}
+	for _, st := range ø {
+		ss = append(ss, st.String())
+	}
+	return strings.Join(ss, " ")
+}
 
 // helper to easily create multiple styles
 // use is like this
-// Styles{"width","200px","height","30px","color","green"}.ToStyleArr()
-type Styles []string
-
-func (ø Styles) ToStyleArr() (s []Style) {
-	s = []Style{}
+// Style("width","200px","height","30px","color","green")
+func Style(ø ...string) (s styles) {
+	s = styles{}
 	for i := 0; i < len(ø); i = i + 2 {
-		s = append(s, Style{ø[i], ø[i+1]})
+		s = append(s, style{ø[i], ø[i+1]})
 	}
 	return
 }
 
-func (ø Styles) String() (s string) {
-	ss := []string{}
-	styles := ø.ToStyleArr()
-	for _, style := range styles {
-		ss = append(ss, style.String())
-	}
-	return strings.Join(ss, " ")
-}
-
-type Attr struct {
+type attr struct {
 	Key   string
 	Value string
 }
 
-func (ø Attr) String() string { return " " + ø.Key + `="` + html.EscapeString(ø.Value) + `"` }
+func (ø attr) String() string { return " " + ø.Key + `="` + html.EscapeString(ø.Value) + `"` }
 
-// helper to easily create multiple attrs
-// use is like this
-// Attrs{"width","200px","height","30px","value","hiho"}.ToAttrArr()
-type Attrs []string
+type attrs []attr
 
-func (ø Attrs) ToAttrArr() (s []Attr) {
-	s = []Attr{}
-	for i := 0; i < len(ø); i = i + 2 {
-		s = append(s, Attr{ø[i], ø[i+1]})
-	}
-	return
-}
-
-func (ø Attrs) String() (s string) {
+func (ø attrs) String() (s string) {
 	ss := []string{}
-	attrs := ø.ToAttrArr()
-	for _, attr := range attrs {
-		ss = append(ss, attr.String())
+	for _, atr := range ø {
+		ss = append(ss, atr.String())
 	}
 	return strings.Join(ss, " ")
 }
 
-/*
-func fmt.Errorf(message string, obj ...interface{}) error {
-	return errors.New(fmt.Sprintf(message+"\n", obj...))
+// helper to easily create multiple attrs
+// use is like this
+// Attr("width","200px","height","30px","value","hiho")
+func Attr(ø ...string) (s attrs) {
+	s = []attr{}
+	for i := 0; i < len(ø); i = i + 2 {
+		s = append(s, attr{ø[i], ø[i+1]})
+	}
+	return
 }
-*/

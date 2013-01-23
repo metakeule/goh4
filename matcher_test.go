@@ -66,8 +66,8 @@ func TestTagMatcher(t *testing.T) {
 }
 
 func TestAttrMatcher(t *testing.T) {
-	m := Attr{"width", "200"}
-	if !m.Matches(Div(Attr{"width", "200"})) {
+	m := attr{"width", "200"}
+	if !m.Matches(Div(Attr("width", "200"))) {
 		err(t, "incorrect Attr matcher matches", false, true)
 	}
 	if m.Matches(Div()) {
@@ -76,18 +76,18 @@ func TestAttrMatcher(t *testing.T) {
 }
 
 func TestAttrsMatcher(t *testing.T) {
-	m := Attrs{"width", "200", "height", "300"}
-	if !m.Matches(Div(Attrs{"width", "200", "height", "300"})) {
+	m := Attr("width", "200", "height", "300")
+	if !m.Matches(Div(Attr("width", "200", "height", "300"))) {
 		err(t, "incorrect Attrs matcher matches", false, true)
 	}
-	if m.Matches(Div(Attr{"width", "200"})) {
+	if m.Matches(Div(Attr("width", "200"))) {
 		err(t, "incorrect Attrs matcher matches", true, false)
 	}
 }
 
 func TestStyleMatcher(t *testing.T) {
-	m := Style{"width", "200"}
-	if !m.Matches(Div(Style{"width", "200"})) {
+	m := Style("width", "200")
+	if !m.Matches(Div(Style("width", "200"))) {
 		err(t, "incorrect Style matcher matches", false, true)
 	}
 	if m.Matches(Div()) {
@@ -96,11 +96,11 @@ func TestStyleMatcher(t *testing.T) {
 }
 
 func TestStylesMatcher(t *testing.T) {
-	m := Styles{"width", "200", "height", "300"}
-	if !m.Matches(Div(Styles{"width", "200", "height", "300"})) {
+	m := Style("width", "200", "height", "300")
+	if !m.Matches(Div(Style("width", "200", "height", "300"))) {
 		err(t, "incorrect Styles matcher matches", false, true)
 	}
-	if m.Matches(Div(Style{"width", "200"})) {
+	if m.Matches(Div(Style("width", "200"))) {
 		err(t, "incorrect Styles matcher matches", true, false)
 	}
 }

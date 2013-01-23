@@ -22,7 +22,7 @@ type Css struct {
 	class   Class
 	Context Context
 	comment Comment
-	Tags    Tags
+	Tags    tags
 	styles  map[string]string
 	parents []CssParenter
 }
@@ -42,7 +42,7 @@ type Css struct {
 // the Css inherits from that
 func NewCss(objects ...Stringer) (c *Css) {
 	c = &Css{
-		Tags:    Tags{},
+		Tags:    tags{},
 		styles:  map[string]string{},
 		parents: []CssParenter{},
 	}
@@ -51,17 +51,16 @@ func NewCss(objects ...Stringer) (c *Css) {
 		case Context:
 			c.Context = v
 		case Tag:
-			c.Tags = append(c.Tags, v.String())
-		case Tags:
-			for _, tag := range v {
-				c.Tags = append(c.Tags, tag)
+			c.Tags = append(c.Tags, v)
+		case tags:
+			for _, tg := range v {
+				c.Tags = append(c.Tags, tg)
 			}
-		case Styles:
-			styles := v.ToStyleArr()
-			for _, style := range styles {
-				c.Set(style.Key, style.Value)
+		case styles:
+			for _, styl := range v {
+				c.Set(styl.Key, styl.Value)
 			}
-		case Style:
+		case style:
 			c.Set(v.Key, v.Value)
 		case Class:
 			c.class = v
@@ -115,7 +114,7 @@ func (ø *Css) Selector() (s string) {
 		selectors := []string{}
 
 		for _, tt := range ø.Tags {
-			selectors = append(selectors, ø.partialSelector(tt))
+			selectors = append(selectors, ø.partialSelector(tt.String()))
 		}
 		s = strings.Join(selectors, ",\n")
 
@@ -151,7 +150,7 @@ func (ø *Css) styleString() (r string) {
 			}
 			comment = fmt.Sprintf("\t/* inherited from »%s«%s */", p.Selector(), cmt)
 		}
-		r += fmt.Sprintf("\t%s%s\n", Style{k, v}, comment)
+		r += fmt.Sprintf("\t%s%s\n", style{k, v}, comment)
 	}
 
 	return

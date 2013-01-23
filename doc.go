@@ -38,13 +38,13 @@ some neat things, for instance
 	a.String() // <a class="button" id="start">begin</a>
 
 	a = A(
-		Attrs{"href","#","_target","_blank"},
+		Attr("href","#","_target","_blank"),
 		Text("something"))
 
 	a.String() // <a href="#" target="_blank">something</a>
 
 	a = A(
-		Styles{"color","red"},
+		Style("color","red"),
 		Strong(
 			Html("not <escaped>!")))
 	a.String() // <a style="color:red;"><strong>not <escaped></strong></a>
@@ -90,11 +90,11 @@ Element and Template are structs you can inherit from them, e.g.
 
 If you want type save reusable css, you can use Css.
 
-	fontsize := NewCss(Class("default-font-size"),Styles{"font-size","20"})
+	fontsize := NewCss(Class("default-font-size"),Style("font-size","20"))
 	css := NewCss(
 		Class("yellow-button"),
-		Tags{"a","button"},
-		Styles{"background-color","yellow"},
+		Tags("a","button"),
+		Style("background-color","yellow"),
 		fontsize)
 
 and then you might apply it to your elements.

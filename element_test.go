@@ -78,8 +78,8 @@ func TestElementAdd(t *testing.T) {
 		strong,
 		span,
 		css,
-		Styles{"color", "green", "zoom", "1"},
-		Attrs{"height", "300", "width", "200"})
+		Style("color", "green", "zoom", "1"),
+		Attr("height", "300", "width", "200"))
 
 	if a.attributes["height"] != "300" {
 		err(t, "incorrect height", a.attributes["height"], "300")
@@ -322,7 +322,7 @@ func ExampleElement_Add() {
 
 // add / set properties
 func ExampleElement_Add_properties() {
-	css := NewCss(Class("yellow"), Style{"background-color", "yellow"})
+	css := NewCss(Class("yellow"), Style("background-color", "yellow"))
 	d := Div(Class("first")) // objects to tag constructors like Div(), Body(),... gets passed to Add()
 
 	d.Add(
@@ -330,8 +330,8 @@ func ExampleElement_Add_properties() {
 		Class("second"),
 		css, // adds the class of the css to the element, multiple *Css can be given
 		Comment("main row"),
-		Attr{"height", "200"},   // multiple attributes at once with Attrs{"height", "200", "width", "300"}
-		Style{"width", "500px"}) // multiple styles at once with Styles{"height", "200", "width", "300"}
+		Attr("height", "200"),   // multiple attributes at once with Attrs{"height", "200", "width", "300"}
+		Style("width", "500px")) // multiple styles at once with Styles{"height", "200", "width", "300"}
 
 	fmt.Printf("---CSS---%s---HTML---%s\n", css, d)
 	// Output: ---CSS---

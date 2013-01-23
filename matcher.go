@@ -87,22 +87,21 @@ func (ø Tag) Matches(t *Element) bool {
 	return ø == t.tag
 }
 
-func (ø Style) Matches(t *Element) bool {
+func (ø style) Matches(t *Element) bool {
 	return t.style[ø.Key] == ø.Value
 }
 
-func (ø Styles) Matches(t *Element) (m bool) {
-	styles := ø.ToStyleArr()
+func (ø styles) Matches(t *Element) (m bool) {
 	m = true
-	for _, style := range styles {
-		if !style.Matches(t) {
+	for _, styl := range ø {
+		if !styl.Matches(t) {
 			m = false
 		}
 	}
 	return
 }
 
-func (ø Attr) Matches(t *Element) bool {
+func (ø attr) Matches(t *Element) bool {
 	if ø.Key == "id" {
 		return Id(ø.Value).Matches(t)
 	}
@@ -114,8 +113,8 @@ func (ø Attr) Matches(t *Element) bool {
 		m := true
 		for _, st := range styles {
 			a := strings.Split(st, ":")
-			style := Style{a[0], a[1]}
-			if !style.Matches(t) {
+			styl := style{a[0], a[1]}
+			if !styl.Matches(t) {
 				m = false
 			}
 		}
@@ -127,10 +126,9 @@ func (ø Attr) Matches(t *Element) bool {
 	return false
 }
 
-func (ø Attrs) Matches(t *Element) (m bool) {
-	attrs := ø.ToAttrArr()
+func (ø attrs) Matches(t *Element) (m bool) {
 	m = true
-	for _, attr := range attrs {
+	for _, attr := range ø {
 		if !attr.Matches(t) {
 			m = false
 		}

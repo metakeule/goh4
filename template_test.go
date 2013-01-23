@@ -43,7 +43,7 @@ func TestTemplateAssign(t *testing.T) {
 }
 
 func TestTemplateAddCss(t *testing.T) {
-	css := NewCss(Tag("body"), Style{"color", "red"})
+	css := NewCss(Tag("body"), Style("color", "red"))
 	head := Head()
 	layout := NewTemplate(Doc(head))
 	layout.AddCss(css)

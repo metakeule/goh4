@@ -7,12 +7,12 @@ type save html and css generation for golang with functions, e.g.
 
 	font := NewCss(
 		Class("default-font"),
-		Styles{"font-size","20","font-weight","normal"})
+		Style("font-size","20","font-weight","normal"))
 
 	css := NewCss(
 		Class("yellow-button"),
-		Tags{"a","button"},
-		Style{"background-color","yellow"},
+		Tags("a","button"),
+		Style("background-color","yellow"),
 		font)
 
 	a := A(css)
