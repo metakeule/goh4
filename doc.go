@@ -74,7 +74,7 @@ Template may also add css to your head element. In this case you need to
 use the Doc() pseudo element, that holds the root of the document.
 And you need a head obviously.
 
-	doc := NewTemplate(Doc(Head())
+	doc := NewTemplate(Doc(Head()))
 	doc.AddCss("body{ color: red; }")
 	doc.String() // <head><style>body { color: red; }</style></head>
 

@@ -24,7 +24,7 @@ type save html and css generation for golang with functions, e.g.
 
 	doc.AddCss(css)
 
-	fmt.Ptrintln(doc)
+	fmt.Println(doc)
 
 results in
 
