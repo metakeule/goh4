@@ -12,7 +12,7 @@ func ExampleNewCss() {
 		Tags("a:hover", "li"), // single tag with Tag("li")
 		Comment("highlight activation"),
 		Context("#content"),   // is simply prefixed to the selector
-		Style("color", "red")) // multiple styles with Styles{"color","red","width","200"}
+		Style("color", "red")) // multiple styles with Style("color","red","width","200")
 
 	fmt.Println(css)
 	// Output: /* highlight activation */
