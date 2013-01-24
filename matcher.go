@@ -39,6 +39,13 @@ func And(m ...Matcher) and {
 	return and(m)
 }
 
+type not struct{ Matcher }
+
+// matches if inner matcher does not match
+func (ø *not) Matches(e *Element) bool { return !ø.Matcher.Matches(e) }
+
+func Not(m Matcher) *not { return &not{m} }
+
 type PositionMatcher struct {
 	Element *Element
 	Pos     int

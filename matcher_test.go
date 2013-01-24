@@ -45,6 +45,16 @@ func TestClassMatcher(t *testing.T) {
 	}
 }
 
+func TestNotMatcher(t *testing.T) {
+	c := Not(Class("fine"))
+	if c.Matches(A(Class("fine"))) {
+		err(t, "incorrect not matcher matches", true, false)
+	}
+	if !c.Matches(A()) {
+		err(t, "incorrect not matcher matches", false, true)
+	}
+}
+
 func TestIdMatcher(t *testing.T) {
 	i := Id("fine")
 	if !i.Matches(A(Id("fine"))) {
