@@ -120,12 +120,8 @@ func (ø *Element) Is(f flag) bool {
 	return ø.flags&f != 0
 }
 
-// returns the fields of a form
-// returns empty array if Element is no form
+// returns the formfields
 func (ø *Element) Fields() (fields []*Element) {
-	if ø.tag != "form" {
-		return []*Element{}
-	}
 	return ø.All(FieldMatcher(0))
 }
 
