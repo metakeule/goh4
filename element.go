@@ -422,6 +422,11 @@ func (ø *Element) Add(objects ...Stringer) (err error) {
 	return
 }
 
+// clears the inner elements and strings
+func (ø *Element) Clear() {
+	ø.inner = []Stringer{}
+}
+
 // clears the inner object array and the classes
 // and then calles Add() method to change the Element
 //
