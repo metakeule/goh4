@@ -55,6 +55,32 @@ func TestIdMatcher(t *testing.T) {
 	}
 }
 
+func TestOrMatcher(t *testing.T) {
+	i := Or(Id("fine"), Class("well"))
+	if !i.Matches(A(Id("fine"))) {
+		err(t, "incorrect or id matcher matches", false, true)
+	}
+	if !i.Matches(A(Class("well"))) {
+		err(t, "incorrect or class matcher matches", false, true)
+	}
+	if i.Matches(A()) {
+		err(t, "incorrect or matcher matches", true, false)
+	}
+}
+
+func TestAndMatcher(t *testing.T) {
+	i := And(Id("fine"), Class("well"))
+	if !i.Matches(A(Id("fine"), Class("well"))) {
+		err(t, "incorrect and matcher matches", false, true)
+	}
+	if i.Matches(A(Class("well"))) {
+		err(t, "incorrect and  class matcher matches", true, false)
+	}
+	if i.Matches(A(Id("fine"))) {
+		err(t, "incorrect and id matcher matches", true, false)
+	}
+}
+
 func TestTagMatcher(t *testing.T) {
 	m := Tag("a")
 	if !m.Matches(A()) {

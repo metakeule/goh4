@@ -7,6 +7,38 @@ type Matcher interface {
 	Matches(*Element) bool
 }
 
+type or []Matcher
+
+// matches if any of the Matchers matches
+func (ø or) Matches(e *Element) bool {
+	for _, m := range ø {
+		if m.Matches(e) {
+			return true
+		}
+	}
+	return false
+}
+
+func Or(m ...Matcher) or {
+	return or(m)
+}
+
+type and []Matcher
+
+// matches if all of the Matchers matches
+func (ø and) Matches(e *Element) bool {
+	for _, m := range ø {
+		if !m.Matches(e) {
+			return false
+		}
+	}
+	return true
+}
+
+func And(m ...Matcher) and {
+	return and(m)
+}
+
 type PositionMatcher struct {
 	Element *Element
 	Pos     int
