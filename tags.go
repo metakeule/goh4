@@ -101,7 +101,7 @@ func Br(objects ...Stringer) (t *Element) {
 
 // FormField ??
 func Button(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("button"))
+	t = NewElement(Tag("button"), FormField)
 	t.Set(objects...)
 	return
 }
@@ -375,7 +375,7 @@ func Kbd(objects ...Stringer) (t *Element) {
 }
 
 func Keygen(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("keygen"), SelfClosing|Inline)
+	t = NewElement(Tag("keygen"), SelfClosing|Inline|FormField)
 	t.Set(objects...)
 	return
 }
@@ -456,7 +456,7 @@ func Noscript(objects ...Stringer) (t *Element) {
 }
 
 func Object(objects ...Stringer) (t *Element) {
-	t = NewElement(Tag("object"))
+	t = NewElement(Tag("object"), FormField)
 	t.Set(objects...)
 	return
 }
