@@ -45,12 +45,5 @@ see the Documentation at http://godoc.org/github.com/metakeule/goh4
 TODO
 ====
 
-- more element contruction helpers
-- check element contruction helpers against w3c specs
-- contruction helpers for the various doctypes
-- support for html tidy
-- correct handling of css contexts for matching elements, needs a css selector parser
-- test all the matchers
-- add tools with
-	- initializr / html boilerplate
-	- jquery initialization tool (takes the path of the affected element and executes a js function on it, with and optional json config, writes it in the layout on document ready)
+- correct handling of css contexts for matching elements, will be done
+	with the new exp/html package and http://code.google.com/p/cascadia
