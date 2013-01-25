@@ -42,6 +42,16 @@ func TestNewElement(t *testing.T) {
 
 }
 
+func TestElementRemoveAttribute(t *testing.T) {
+	e := A(Attr("href", "#"))
+
+	e.RemoveAttribute("href")
+
+	if e.attributes["href"] != "" {
+		err(t, "incorrect attribute removal", e.attributes["href"], "")
+	}
+}
+
 // apply the css to the element
 func TestElementApplyCss(t *testing.T) {
 	el := Div()

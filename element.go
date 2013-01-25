@@ -137,6 +137,11 @@ func (ø *Element) SetAttribute(k, v string) {
 	}
 }
 
+// removes an attribute
+func (ø *Element) RemoveAttribute(k string) {
+	delete(ø.attributes, k)
+}
+
 func (ø *Element) Attribute(k string) string {
 	return ø.attributes[k]
 }
