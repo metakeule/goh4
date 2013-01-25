@@ -18,7 +18,7 @@ var tagTests = []struct {
 	{Div, "div", "<div></div>"},
 	{Footer, "footer", "<footer></footer>"},
 	{P, "p", "<p></p>"},
-	{Form, "form", "<form></form>"},
+	{Form, "form", "<form enctype=\"multipart/form-data\" method=\"post\"></form>"},
 	{Head, "head", "<head></head>"},
 	{Hr, "hr", "<hr />"},
 	{Iframe, "iframe", "<iframe />"},
