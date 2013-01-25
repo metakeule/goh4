@@ -246,7 +246,8 @@ func Footer(objects ...Stringer) (t *Element) {
 
 func Form(objects ...Stringer) (t *Element) {
 	t = NewElement(Tag("form"))
-	t.Set(objects...)
+	t.Set(Attr("enctype", "multipart/form-data", "method", "post"))
+	t.Add(objects...)
 	return
 }
 
