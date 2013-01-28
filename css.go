@@ -205,6 +205,8 @@ func (ø *Css) Styles() map[string]string {
 }
 
 // lets the Css inherit from the given CssParenter
-func (ø *Css) InheritFrom(r CssParenter) {
-	ø.parents = append(ø.parents, r)
+func (ø *Css) InheritFrom(ps ...CssParenter) {
+	for _, p := range ps {
+		ø.parents = append(ø.parents, p)
+	}
 }
