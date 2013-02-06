@@ -49,20 +49,26 @@ func (ø *Template) cacheFragement(id Id) (err error) {
 // 	t.Assign("content", P(Text("here we go")))
 //
 // results in <body><div id="content"><p>here we go</p></div></body>
-func (ø *Template) Assign(id Id, html Stringer) (err error) {
+func (ø *Template) Assign(id Id, html interface{}) (err error) {
 	if ø.placeholderCache[id] == nil {
 		if err = ø.cacheFragement(id); err != nil {
 			return err
 		}
 	}
-	ø.locals[id] = html
+	switch v := html.(type) {
+	case string:
+		ø.locals[id] = Text(v)
+	default:
+		ø.locals[id] = v.(Stringer)
+	}
+
 	ø.merge()
 	return
 }
 
 // add css to the head of the template
 // returns an error if Element is no doc or has no head child
-func (ø *Template) AddCss(css Stringer) (err error) {
+func (ø *Template) AddCss(css ...Stringer) (err error) {
 	if ø.Element.tag != "doc" {
 		return fmt.Errorf("can't add Css only to doc pseudotag, not %s", ø.Element.Tag())
 	}
@@ -76,6 +82,9 @@ func (ø *Template) AddCss(css Stringer) (err error) {
 		style = NewElement(Tag("style"), Invisible, WithoutEscaping)
 		head.Add(style)
 	}
-	style.Add(Html(css.String()))
+
+	for _, cs := range css {
+		style.Add(Html(cs.String()))
+	}
 	return
 }

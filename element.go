@@ -366,9 +366,17 @@ func (ø *Element) AddAfter(v *Element, nu Elementer) (err error) {
 //
 // If the Stringer can be casted to an Elementer (as Element can), it is added to the inner content as well
 // otherwise it is handled like Text(), that means any type implementing Stringer can be added as (escaped) text
-func (ø *Element) Add(objects ...Stringer) (err error) {
+func (ø *Element) Add(objects ...interface{}) (err error) {
 	for _, o := range objects {
 		switch v := o.(type) {
+		case string:
+			if err := ø.ensureContentAddIsAllowed(); err != nil {
+				return err
+			}
+			if !ø.Is(WithoutEscaping) {
+				v = html.EscapeString(v)
+			}
+			ø.inner = append(ø.inner, Text(v))
 		case Text:
 			if err := ø.ensureContentAddIsAllowed(); err != nil {
 				return err
@@ -410,15 +418,19 @@ func (ø *Element) Add(objects ...Stringer) (err error) {
 			if err := ø.ensureContentAddIsAllowed(); err != nil {
 				return err
 			}
-			if err := ø.ensureParentIsSetAndContentIsAllowed(v); err == nil {
+			stringer, ok := v.(Stringer)
+			if !ok {
+				return fmt.Errorf("%#v  is no Stringer", v)
+			}
+			if err := ø.ensureParentIsSetAndContentIsAllowed(stringer); err == nil {
 				// no error: is an Elementer
-				ø.inner = append(ø.inner, v)
+				ø.inner = append(ø.inner, stringer)
 			} else {
 				// handle it like untyped string
-				s := Text(v.String())
+				s := Text(stringer.String())
 
 				if !ø.Is(WithoutEscaping) {
-					s = Text(html.EscapeString(v.String()))
+					s = Text(html.EscapeString(stringer.String()))
 				}
 				ø.inner = append(ø.inner, s)
 			}
@@ -436,7 +448,7 @@ func (ø *Element) Clear() {
 // and then calles Add() method to change the Element
 //
 // see Add() method for more details
-func (ø *Element) Set(objects ...Stringer) (err error) {
+func (ø *Element) Set(objects ...interface{}) (err error) {
 	ø.inner = []Stringer{}
 	ø.classes = []Class{}
 	return ø.Add(objects...)

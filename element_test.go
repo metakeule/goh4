@@ -80,7 +80,7 @@ func TestElementAdd(t *testing.T) {
 		Id("myid"),
 		Class("fine"),
 		Class("fancy"),
-		Text("<escaped>"),
+		"<escaped>",
 		Html("<unchanged!>"),
 		Comment("no comment"),
 		span,
@@ -283,7 +283,7 @@ func ExampleNewElement() {
 func ExampleNewElement_selfclosing() {
 	t := NewElement(Tag("special"), SelfClosing)
 	fmt.Println(t)
-	if err := t.Add(Text("will fail")); err != nil {
+	if err := t.Add("will fail"); err != nil {
 		fmt.Println("can't add to selfclosing element")
 	}
 	// Output: <special />
@@ -309,7 +309,7 @@ func ExampleNewElement_withoutDecoration() {
 			Id("content")),
 		Html("</html>"))
 
-	layout.Assign("content", Text("in the body"))
+	layout.Assign("content", "in the body")
 	fmt.Println(layout)
 
 	// Output: <!DOCTYPE html>
@@ -324,7 +324,7 @@ func ExampleElement_Add() {
 	div.Add(
 		Html("<b>hello</b>"), // is not escaped
 		Text("c > d"),        // is escaped
-		Span(Text("hiho")))   // objects to tag constructors like Div(), Span(),... gets passed to Add()
+		Span("hiho"))         // objects to tag constructors like Div(), Span(),... gets passed to Add()
 
 	fmt.Println(div)
 	// Output: <div><b>hello</b>c &gt; d<span>hiho</span></div>

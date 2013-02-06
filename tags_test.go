@@ -7,7 +7,7 @@ import (
 )
 
 var tagTests = []struct {
-	fn   func(...Stringer) *Element
+	fn   func(...interface{}) *Element
 	tag  string
 	html string
 }{
