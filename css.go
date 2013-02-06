@@ -27,6 +27,27 @@ type Css struct {
 	parents []CssParenter
 }
 
+type CssCollection []*Css
+
+func (ø *CssCollection) New(objects ...Stringer) (css *Css) {
+	css = NewCss(objects...)
+	*ø = append(*ø, css)
+	return
+}
+
+func (ø *CssCollection) Add(css *Css) {
+	*ø = append(*ø, css)
+}
+
+func (ø *CssCollection) Attach(t *Template) {
+	for _, cs := range *ø {
+		t.AddCss(cs)
+	}
+
+}
+
+// TODO make method to write a csscollection to a file
+
 // creates a new Css, based on Stringer objects.
 // the following types are handled in a special way
 //

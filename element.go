@@ -309,7 +309,7 @@ func (ø *Element) SetBottom(v Elementer) (err error) {
 // returns the position of the Element in the inner content. if it could not be found, the last parameter is false
 func (ø *Element) PositionOf(v *Element) (pos int, found bool) {
 	m := &PositionMatcher{Element: v}
-	_, _ = ø.Any(m)
+	_ = ø.Any(m)
 	pos = m.Pos
 	found = m.Found
 	return
@@ -627,23 +627,22 @@ func (ø *Element) All(m Matcher) (r []*Element) {
 // filter by anything that fullfills the matcher interface,
 // e.g. Class, Id, Attr, Attrs, Css, Tag, Style, Styles
 // returns the first tag in the children and the subchildren that matches
-func (ø *Element) Any(m Matcher) (found bool, r *Element) {
+func (ø *Element) Any(m Matcher) (r *Element) {
 	if len(ø.inner) == 0 {
-		return
+		return nil
 	}
 	for _, in := range ø.inner {
 		switch t := in.(type) {
 		case *Element:
 			if m.Matches(t) {
 				r = t
-				found = true
 				return
 			}
-			found, r = t.Any(m)
-			if found {
+			r = t.Any(m)
+			if r != nil {
 				return
 			}
 		}
 	}
-	return
+	return nil
 }

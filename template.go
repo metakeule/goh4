@@ -35,8 +35,8 @@ func (ø *Template) merge() {
 
 // caches the Stringer
 func (ø *Template) cacheFragement(id Id) (err error) {
-	found, h := ø.Element.Any(Id(id))
-	if !found {
+	h := ø.Element.Any(Id(id))
+	if h == nil {
 		return fmt.Errorf("element with id %v not found in %s", id, ø.Element.String())
 	}
 	ø.placeholderCache[id] = h
@@ -73,10 +73,10 @@ func (ø *Template) AddCss(css ...Stringer) (err error) {
 		return fmt.Errorf("can't add Css only to doc pseudotag, not %s", ø.Element.Tag())
 	}
 
-	found, style := ø.Element.Any(Tag("style"))
-	if !found {
-		found, head := ø.Element.Any(Tag("head"))
-		if !found {
+	style := ø.Element.Any(Tag("style"))
+	if style == nil {
+		head := ø.Element.Any(Tag("head"))
+		if head == nil {
 			return fmt.Errorf("no head element present in %s", ø.Element.Path())
 		}
 		style = NewElement(Tag("style"), Invisible, WithoutEscaping)

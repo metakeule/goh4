@@ -157,7 +157,7 @@ func TestElementAdd(t *testing.T) {
 		err(t, "incorrect result for all spans", spans[0], span)
 	}
 
-	_, strng := a.Any(Tag("strong"))
+	strng := a.Any(Tag("strong"))
 
 	if strong != strng {
 		err(t, "incorrect result for any strong", strng, strong)
