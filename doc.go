@@ -6,6 +6,8 @@
 Package goh4 constructs html element trees (something like DOM), html templates and integrates them with css rules.
 All of them are done by using types, not strings. This makes reuse and shortcuts easy.
 
+It is inspired by http://godoc.org/github.com/daaku/go.h
+
 It is easy to extend goh4 and build upon it and you may bring in some html and css strings as well.
 
 Elements
