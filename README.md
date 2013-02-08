@@ -5,8 +5,8 @@ goh4
 
 type save html and css generation for golang with functions (inspired by http://godoc.org/github.com/daaku/go.h)
 
-Example
-=======
+example
+-------
 
 ```go
 package main
@@ -54,10 +54,14 @@ results in
 </head>
 <body><a class="yellow-button"></a></body>
 ```
-see the Documentation at http://godoc.org/github.com/metakeule/goh4
+
+Documentation
+-------------
+
+see http://godoc.org/github.com/metakeule/goh4
 
 TODO
-====
+----
 
 - correct handling of css contexts for matching elements, will be done
 	with the new exp/html package and http://code.google.com/p/cascadia
