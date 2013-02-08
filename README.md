@@ -42,17 +42,17 @@ func main(){
 results in
 
 ```html
-	<head>
-		<style>
-			a.yellow-button,
-			button.yellow-button {
-				background-color: yellow;
-				font-weight: normal;	/* inherited from ».default-font« */
-				font-size: 20;	/* inherited from ».default-font« */
-			}
-		</style>
-	</head>
-	<body><a class="yellow-button"></a></body>
+<head>
+	<style>
+		a.yellow-button,
+		button.yellow-button {
+			background-color: yellow;
+			font-weight: normal;	/* inherited from ».default-font« */
+			font-size: 20;	/* inherited from ».default-font« */
+		}
+	</style>
+</head>
+<body><a class="yellow-button"></a></body>
 ```
 see the Documentation at http://godoc.org/github.com/metakeule/goh4
 
