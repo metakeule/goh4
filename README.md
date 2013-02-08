@@ -3,7 +3,10 @@ goh4
 
 [![Build Status](https://secure.travis-ci.org/metakeule/goh4.png)](http://travis-ci.org/metakeule/goh4)
 
-type save html and css generation for golang with functions (inspired by http://godoc.org/github.com/daaku/go.h) , e.g.
+type save html and css generation for golang with functions (inspired by http://godoc.org/github.com/daaku/go.h)
+
+Example
+=======
 
 ```go
 package main
@@ -44,8 +47,8 @@ results in
 			a.yellow-button,
 			button.yellow-button {
 				background-color: yellow;
-				font-weight: normal;	\/* inherited from ».default-font« *\/
-				font-size: 20;	\/* inherited from ».default-font« *\/
+				font-weight: normal;	/* inherited from ».default-font« */
+				font-size: 20;	/* inherited from ».default-font« */
 			}
 		</style>
 	</head>
