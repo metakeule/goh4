@@ -150,6 +150,15 @@ func (ø *Element) Attributes() map[string]string {
 	return ø.attributes
 }
 
+// wraps the children with the given element
+func (ø *Element) WrapChildren(wrapper *Element) {
+	for _, s := range ø.inner {
+		wrapper.Add(s)
+	}
+	ø.inner = []Stringer{}
+	ø.Add(wrapper)
+}
+
 func (ø *Element) SetParent(parent Pather) {
 	ø.parent = parent
 }
