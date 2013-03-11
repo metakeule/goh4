@@ -44,7 +44,7 @@ func SetupExampleMain(ø *Initializr) {
 		exampleSpan4(exampleText),
 		exampleSpan4(exampleText))
 
-	ø.Main.Set(Html(`<!-- Main hero unit for a primary marketing message or call to action -->`))
+	ø.Main.SetContent(Html(`<!-- Main hero unit for a primary marketing message or call to action -->`))
 	ø.Main.Add(
 		hero,
 		row,

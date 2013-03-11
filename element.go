@@ -453,13 +453,12 @@ func (ø *Element) Clear() {
 	ø.inner = []Stringer{}
 }
 
-// clears the inner object array and the classes
-// and then calles Add() method to change the Element
+// clears the inner object array
+// and then calles Add() method to add content
 //
 // see Add() method for more details
-func (ø *Element) Set(objects ...interface{}) (err error) {
+func (ø *Element) SetContent(objects ...interface{}) (err error) {
 	ø.inner = []Stringer{}
-	ø.classes = []Class{}
 	return ø.Add(objects...)
 }
 

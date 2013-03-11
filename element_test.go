@@ -76,7 +76,7 @@ func TestElementAdd(t *testing.T) {
 	css := NewCss(Class("good-looking"))
 
 	a := NewElement(Tag("a"))
-	a.Set(
+	a.Add(
 		Id("myid"),
 		Class("fine"),
 		Class("fancy"),
@@ -303,7 +303,7 @@ func ExampleNewElement_withoutDecoration() {
 
 	layout := NewTemplate(doc)
 
-	doc.Set(
+	doc.Add(
 		Html("<!DOCTYPE html>"),
 		Body(
 			Id("content")),

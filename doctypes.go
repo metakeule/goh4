@@ -3,7 +3,7 @@ package goh4
 // pseudo element for placeholder
 func Doc(objects ...interface{}) (t *Element) {
 	t = NewElement(Tag("doc"), WithoutDecoration)
-	t.Set(objects...)
+	t.Add(objects...)
 	return
 }
 

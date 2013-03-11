@@ -14,6 +14,19 @@ func TestNewTemplate(t *testing.T) {
 
 }
 
+func TestTemplateCompile(t *testing.T) {
+	layout := NewTemplate(Span(Html("@@content@@")))
+	content := Strong(Text("hiho"))
+	compiled := layout.Compile()
+	i := compiled.Instance()
+	i.AssignString("content", content.String())
+	exp := `<span><strong>hiho</strong></span>`
+
+	if i.String() != exp {
+		err(t, "incorrect template compilation", i.String(), exp)
+	}
+}
+
 func TestTemplateAssign(t *testing.T) {
 	body := Body(
 		Id("contact"),

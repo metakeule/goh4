@@ -53,7 +53,7 @@ func SetupExampleNavigation(ø *Initializr) {
 	navCollapse.Add(navUl)
 	navCollapse.Add(form)
 
-	ø.Navigation.Set() // reset the navigation
+	ø.Navigation.SetContent() // reset the navigation
 	ø.Navigation.Add(btn)
 	ø.Navigation.Add(A(Class("brand"), Attr("href", "#"), "Project name"))
 	ø.Navigation.Add(navCollapse)

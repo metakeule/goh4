@@ -1,11 +1,15 @@
 package goh4
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/metakeule/fastreplace"
+)
 
 type Template struct {
 	*Element
 	locals           map[Id]Stringer
 	placeholderCache map[Id]*Element
+	Delimiter        string
 }
 
 // creates a new template with the given element as root
@@ -14,6 +18,26 @@ func NewTemplate(t *Element) *Template {
 		Element:          t,
 		locals:           map[Id]Stringer{},
 		placeholderCache: map[Id]*Element{},
+		Delimiter:        "@@",
+	}
+}
+
+type CompiledTemplate struct {
+	*fastreplace.FReplace
+	Template *Template
+}
+
+// returns a *CompiledTemplate that is a FReplace (see github.com/metakeule/fastreplace)
+// the template will be build as string and then searched for placeholders that
+// start and end with the ø.Delimiter (defaults to "@@")
+// then the various methods of fastreplace.FReplace can be used to merge
+// the placeholders of the template with the values
+// if you need to change the original template again, you can get it via CompiledTemplate.Template
+// then call Compile() again to get a new CompiledTemplate
+func (ø *Template) Compile() (c *CompiledTemplate) {
+	return &CompiledTemplate{
+		FReplace: fastreplace.NewString(ø.Delimiter, ø.String()),
+		Template: ø,
 	}
 }
 
@@ -25,9 +49,9 @@ func (ø *Template) merge() {
 		elem, isElement := v.(*Element)
 		if isElement {
 			elem.SetParent(oldParent)
-			ø.placeholderCache[k].Set(elem)
+			ø.placeholderCache[k].SetContent(elem)
 		} else {
-			ø.placeholderCache[k].Set(v)
+			ø.placeholderCache[k].SetContent(v)
 		}
 
 	}
