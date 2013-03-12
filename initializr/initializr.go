@@ -42,7 +42,7 @@ var charset = Meta(Attr("charset", "utf-8"))
 var chromeFrame = Meta(Attr("http-equiv", "X-UA-Compatible"), Attr("content", "IE=edge,chrome=1"))
 var viewport = Meta(Attr("name", "viewport"), Attr("content", "width=device-width"))
 
-func (ø *Initializr) Compile() (c *CompiledTemplate) {
+func (ø *Initializr) Compile() (*CompiledTemplate, error) {
 	ø.Template.Add(Html(post))
 	return ø.Template.Compile()
 }

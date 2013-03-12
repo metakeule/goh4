@@ -34,12 +34,16 @@ type CompiledTemplate struct {
 // the placeholders of the template with the values
 // if you need to change the original template again, you can get it via CompiledTemplate.Template
 // then call Compile() again to get a new CompiledTemplate
-func (ø *Template) Compile() (c *CompiledTemplate) {
-	s := ø.String()
-	return &CompiledTemplate{
-		FReplace: fastreplace.NewString(ø.Delimiter, s),
+func (ø *Template) Compile() (c *CompiledTemplate, ſ error) {
+	fr, ſ := fastreplace.NewString(ø.Delimiter, ø.String())
+	if ſ != nil {
+		return
+	}
+	c = &CompiledTemplate{
+		FReplace: fr,
 		Template: ø,
 	}
+	return
 }
 
 // merges the locals to the Templates
