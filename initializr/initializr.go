@@ -42,8 +42,9 @@ var charset = Meta(Attr("charset", "utf-8"))
 var chromeFrame = Meta(Attr("http-equiv", "X-UA-Compatible"), Attr("content", "IE=edge,chrome=1"))
 var viewport = Meta(Attr("name", "viewport"), Attr("content", "width=device-width"))
 
-func (ø *Initializr) String() string {
-	return pre + ø.Template.String() + ø.post
+func (ø *Initializr) Compile() (c *CompiledTemplate) {
+	ø.Template.Add(Html(post))
+	return ø.Template.Compile()
 }
 
 // expects a string with placeholder %s
@@ -123,7 +124,7 @@ func (ø *Initializr) SetupBody() {
 
 func Layout() (layout *Initializr) {
 	layout = &Initializr{
-		Template: &Template{Element: Doc()},
+		Template: &Template{Element: Doc(Html(pre))},
 		pre:      pre,
 		post:     post,
 		Head:     Head(lf, charset, lf, chromeFrame, lf, viewport, lf),
@@ -131,6 +132,7 @@ func Layout() (layout *Initializr) {
 		CssPath:  "/css",
 		JsPath:   "/js",
 	}
+	layout.Template.Delimiter = "@@"
 	//layout.Template.Tag = layout.Body
 	layout.Template.Add(layout.Head, layout.Body)
 	layout.SetupHead()

@@ -35,8 +35,9 @@ type CompiledTemplate struct {
 // if you need to change the original template again, you can get it via CompiledTemplate.Template
 // then call Compile() again to get a new CompiledTemplate
 func (ø *Template) Compile() (c *CompiledTemplate) {
+	s := ø.String()
 	return &CompiledTemplate{
-		FReplace: fastreplace.NewString(ø.Delimiter, ø.String()),
+		FReplace: fastreplace.NewString(ø.Delimiter, s),
 		Template: ø,
 	}
 }
