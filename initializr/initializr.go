@@ -1,21 +1,79 @@
 package initializr
 
 import (
-	"fmt"
+	ŧ "fmt"
 	. "github.com/metakeule/goh4"
+	"io/ioutil"
+	ħ "net/http"
+	"os"
+	"path"
+	"regexp"
+	"strings"
 )
+
+type Loadable interface {
+	Load() string
+}
+
+type directText string
+
+func (ø directText) Load() string {
+	// ŧ.Printf("loading: %#v\n", ø)
+	return string(ø)
+}
+
+var isUrl = regexp.MustCompile("https?://")
+
+type file string
+
+// load the file and return as string
+func (ø file) Load() string {
+	if isUrl.MatchString(string(ø)) {
+		// ŧ.Printf("loading: %#v\n", ø)
+		resp, ſ := ħ.Get(string(ø))
+		if ſ != nil {
+			panic(ſ.Error())
+		}
+		defer resp.Body.Close()
+		body, ſ := ioutil.ReadAll(resp.Body)
+		if ſ != nil {
+			panic(ſ.Error())
+		}
+		return string(body)
+	} else {
+		// ŧ.Printf("loading: %#v\n", ø)
+		wd, _ := os.Getwd()
+		// fmt.Printf("working dir: %s\n", wd)
+		f := path.Join(wd, string(ø))
+		// fmt.Printf("file: %s\n", f)
+		b, ſ := ioutil.ReadFile(f)
+		if ſ != nil {
+			panic(ſ.Error())
+		}
+		return string(b)
+	}
+	return ""
+}
 
 type Initializr struct {
 	*Template
-	pre        string
-	post       string
-	Head       *Element
-	Body       *Element
-	Navigation *Element
-	Main       *Element
-	CssPath    string
-	JsPath     string
+	pre            string
+	post           string
+	Head           *Element
+	Body           *Element
+	Navigation     *Element
+	Main           *Element
+	CssPath        string
+	JsPath         string
+	UseCachedFiles bool
+	cachedJs       []Loadable
+	cachedJsHead   []Loadable
+	cachedCss      []Loadable
 }
+
+var cachedJsPath = "%s/scripts.js"
+var cachedJsHeadPath = "%s/scripts-head.js"
+var cachedCssPath = "%s/style.css"
 
 var pre string = `<!DOCTYPE html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
@@ -47,18 +105,59 @@ func (ø *Initializr) Compile() (*CompiledTemplate, error) {
 	return ø.Template.Compile()
 }
 
+func (ø *Initializr) CachedJsFile() (path string, content string) {
+	js := []string{}
+	// ŧ.Println("CachedJsFile called")
+	// ŧ.Printf("cachedJs: %#v\n", ø.cachedJs)
+	for _, j := range ø.cachedJs {
+		// ŧ.Println("cachedjs")
+		js = append(js, j.Load())
+	}
+	path = ø.jsPathed(cachedJsPath)
+	content = strings.Join(js, "\n")
+	return
+}
+
+func (ø *Initializr) CachedJsHeadFile() (path string, content string) {
+	js := []string{}
+	// ŧ.Println("CachedJsHeadFile called")
+	for _, j := range ø.cachedJsHead {
+		// ŧ.Println("cachedjsHead")
+		js = append(js, j.Load())
+	}
+	path = ø.jsPathed(cachedJsHeadPath)
+	content = strings.Join(js, "\n")
+	return
+}
+
+func (ø *Initializr) CachedCssFile() (path string, content string) {
+	css := []string{}
+	// ŧ.Println("CachedCssFile called")
+	for _, j := range ø.cachedCss {
+		// ŧ.Println("cachedCss")
+		css = append(css, j.Load())
+	}
+	path = ø.cssPathed(cachedCssPath)
+	content = strings.Join(css, "\n")
+	return
+}
+
 // expects a string with placeholder %s
 func (ø *Initializr) jsPathed(s string) string {
-	return fmt.Sprintf(s, ø.JsPath)
+	return ŧ.Sprintf(s, ø.JsPath)
 }
 
 // expects a string with placeholder %s
 func (ø *Initializr) cssPathed(s string) string {
-	return fmt.Sprintf(s, ø.CssPath)
+	return ŧ.Sprintf(s, ø.CssPath)
 }
 
-func (ø *Initializr) AddCssFile(file string) {
-	ø.Head.Add(Link(Attr("rel", "stylesheet"), Attr("href", file)), lf)
+func (ø *Initializr) AddCssFile(f string) {
+	ø.cachedCss = append(ø.cachedCss, file(f))
+	// ŧ.Printf("adding css file %v, cachedcss: %#v\n", f, ø.cachedCss)
+	if !ø.UseCachedFiles {
+		ø.Head.Add(Link(Attr("rel", "stylesheet"), Attr("href", f)), lf)
+	}
 }
 
 func (ø *Initializr) AddMetaDescription(descr string) {
@@ -66,17 +165,45 @@ func (ø *Initializr) AddMetaDescription(descr string) {
 }
 
 func (ø *Initializr) AddStyle(css string) {
-	styleTag := NewElement("style", Invisible)
-	styleTag.Add(css)
-	ø.Head.Add(styleTag)
+	// ŧ.Printf("adding css %v cachedcss: %#v\n", css, ø.cachedCss)
+	ø.cachedCss = append(ø.cachedCss, directText(css))
+	if !ø.UseCachedFiles {
+		styleTag := NewElement("style", Invisible)
+		styleTag.Add(css)
+		ø.Head.Add(styleTag)
+	}
 }
 
-func (ø *Initializr) AddScriptFile(file string) {
-	ø.Body.Add(Script(Attr("src", file)))
+func (ø *Initializr) AddScriptFile(f string) {
+	// ŧ.Printf("adding js file %v cachedJs: %#v\n", f, ø.cachedJs)
+	ø.cachedJs = append(ø.cachedJs, file(f))
+	if !ø.UseCachedFiles {
+		ø.Body.Add(Script(Attr("src", f)))
+	}
+}
+
+func (ø *Initializr) AddScriptFileHead(f string) {
+	// ŧ.Printf("adding js file head %v cachedJsHead: %#v\n", f, ø.cachedJsHead)
+	ø.cachedJsHead = append(ø.cachedJsHead, file(f))
+	if !ø.UseCachedFiles {
+		ø.Head.Add(Script(Attr("src", f)))
+	}
+}
+
+func (ø *Initializr) AddScriptHead(js string) {
+	// ŧ.Printf("adding js head %v cachedJsHead: %#v\n", js, ø.cachedJsHead)
+	ø.cachedJsHead = append(ø.cachedJsHead, directText(js))
+	if !ø.UseCachedFiles {
+		ø.Head.Add(Script(Html(js)))
+	}
 }
 
 func (ø *Initializr) AddScript(js string) {
-	ø.Body.Add(Script(Html(js)))
+	// ŧ.Printf("adding js %v cachedJs: %#v\n", js, ø.cachedJs)
+	ø.cachedJs = append(ø.cachedJs, directText(js))
+	if !ø.UseCachedFiles {
+		ø.Body.Add(Script(Html(js)))
+	}
 }
 
 func (ø *Initializr) AddGoogleAnalytics(account string) {
@@ -91,11 +218,16 @@ func (ø *Initializr) NewContainter() *Element {
 }
 
 func (ø *Initializr) SetupHead() {
-	ø.AddCssFile(ø.cssPathed("%s/bootstrap.min.css"))
-	ø.AddStyle(style)
-	ø.AddCssFile(ø.cssPathed("%s/bootstrap-responsive.min.css"))
-	ø.AddCssFile(ø.cssPathed("%s/main.css"))
-	ø.Head.Add(Script(Attr("src", ø.jsPathed("%s/modernizr-2.6.2-respond-1.1.0.min.js"))))
+	if ø.UseCachedFiles {
+		ø.Head.Add(Link(Attr("rel", "stylesheet"), Attr("href", ø.cssPathed(cachedCssPath))), lf)
+		ø.Head.Add(Script(Attr("src", ø.jsPathed(cachedJsHeadPath))))
+	} else {
+		ø.AddCssFile(ø.cssPathed("%s/bootstrap.min.css"))
+		ø.AddStyle(style)
+		ø.AddCssFile(ø.cssPathed("%s/bootstrap-responsive.min.css"))
+		ø.AddCssFile(ø.cssPathed("%s/main.css"))
+		ø.Head.Add(Script(Attr("src", ø.jsPathed("%s/modernizr-2.6.2-respond-1.1.0.min.js"))))
+	}
 }
 
 func (ø *Initializr) SetupBody() {
@@ -113,29 +245,33 @@ func (ø *Initializr) SetupBody() {
 
 	ø.Main = ø.NewContainter()
 	ø.Body.Add(ø.Main)
-
-	ø.AddScriptFile("//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js")
-	ø.AddScript(ø.jsPathed(`window.jQuery || document.write('<script src="%s/jquery-1.8.3.min.js"><\/script>')`))
-	//ø.AddScriptFile(ø.jsPathed(`%s/jquery-1.8.3.min.js`))
-	ø.AddScriptFile(ø.jsPathed("%s/bootstrap.min.js"))
-	ø.AddScriptFile(ø.jsPathed("%s/main.js"))
-
+	if ø.UseCachedFiles {
+		ø.Body.Add(Script(Attr("src", ø.jsPathed(cachedJsPath))))
+	} else {
+		ø.AddScriptFileHead("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js")
+		ø.AddScriptHead(ø.jsPathed(`window.jQuery || document.write('<script src="%s/jquery-1.8.3.min.js"><\/script>')`))
+		//ø.AddScriptFile(ø.jsPathed(`%s/jquery-1.8.3.min.js`))
+		//ø.AddScriptFile(ø.jsPathed("%s/bootstrap.min.js"))
+		ø.AddScriptFile(ø.jsPathed("%s/bootstrap.js"))
+		ø.AddScriptFile(ø.jsPathed("%s/main.js"))
+	}
 }
 
 func Layout() (layout *Initializr) {
 	layout = &Initializr{
-		Template: &Template{Element: Doc(Html(pre))},
-		pre:      pre,
-		post:     post,
-		Head:     Head(lf, charset, lf, chromeFrame, lf, viewport, lf),
-		Body:     Body(),
-		CssPath:  "/css",
-		JsPath:   "/js",
+		Template:     &Template{Element: Doc(Html(pre))},
+		pre:          pre,
+		post:         post,
+		Head:         Head(lf, charset, lf, chromeFrame, lf, viewport, lf),
+		Body:         Body(),
+		CssPath:      "/css",
+		JsPath:       "/js",
+		cachedJs:     []Loadable{},
+		cachedJsHead: []Loadable{},
+		cachedCss:    []Loadable{},
 	}
 	layout.Template.Delimiter = "@@"
 	//layout.Template.Tag = layout.Body
 	layout.Template.Add(layout.Head, layout.Body)
-	layout.SetupHead()
-	layout.SetupBody()
 	return
 }
