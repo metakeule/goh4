@@ -7,3 +7,5 @@ func Media_(md string) attrs     { return Attr("media", md) }
 func Src_(src string) attrs      { return Attr("src", src) }
 func Name_(n string) attrs       { return Attr("name", n) }
 func Value_(v string) attrs      { return Attr("value", v) }
+func Method_(m string) attrs     { return Attr("method", m) }
+func Action_(a string) attrs     { return Attr("action", a) }
