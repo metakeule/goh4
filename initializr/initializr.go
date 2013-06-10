@@ -225,7 +225,7 @@ func (ø *Initializr) SetupHead() {
 		ø.AddCssFile(ø.cssPathed("%s/bootstrap.min.css"))
 		ø.AddStyle(style)
 		ø.AddCssFile(ø.cssPathed("%s/bootstrap-responsive.min.css"))
-		ø.AddCssFile(ø.cssPathed("%s/main.css"))
+		//ø.AddCssFile(ø.cssPathed("%s/main.css"))
 		ø.Head.Add(Script(Attr("src", ø.jsPathed("%s/modernizr-2.6.2-respond-1.1.0.min.js"))))
 	}
 }
