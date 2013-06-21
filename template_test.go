@@ -55,29 +55,29 @@ func TestTemplateAssign(t *testing.T) {
 	}
 }
 
-func TestTemplateAddCss(t *testing.T) {
-	css := NewCss(Tag("body"), Style("color", "red"))
-	head := Head()
-	layout := NewTemplate(Doc(head))
-	layout.AddCss(css)
+// func TestTemplateAddCss(t *testing.T) {
+// 	css := NewCss(Tag("body"), Style("color", "red"))
+// 	head := Head()
+// 	layout := NewTemplate(Doc(head))
+// 	layout.AddCss(css)
 
-	if len(head.Children()) == 0 {
-		err(t, "incorrect template AddCss head got no children", 0, 1)
-	}
+// 	if len(head.Children()) == 0 {
+// 		err(t, "incorrect template AddCss head got no children", 0, 1)
+// 	}
 
-	style := head.Children()[0]
-	if style.Tag() != "style" {
-		err(t, "incorrect template AddCss style tag", style.Tag(), "style")
-	}
+// 	style := head.Children()[0]
+// 	if style.Tag() != "style" {
+// 		err(t, "incorrect template AddCss style tag", style.Tag(), "style")
+// 	}
 
-	if style.InnerHtml() != css.String() {
-		err(t, "incorrect template AddCss style content", style.String(), css.String())
-	}
+// 	if style.InnerHtml() != css.String() {
+// 		err(t, "incorrect template AddCss style content", style.String(), css.String())
+// 	}
 
-	layout.AddCss(Text("/* My Comment */"))
+// 	layout.AddCss(Text("/* My Comment */"))
 
-	if len(head.Children()) == 2 {
-		err(t, "incorrect template AddCss wrong number of style tags", 2, 1)
-	}
+// 	if len(head.Children()) == 2 {
+// 		err(t, "incorrect template AddCss wrong number of style tags", 2, 1)
+// 	}
 
-}
+// }

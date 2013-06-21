@@ -53,6 +53,7 @@ func TestElementRemoveAttribute(t *testing.T) {
 }
 
 // apply the css to the element
+/*
 func TestElementApplyCss(t *testing.T) {
 	el := Div()
 	el.ApplyCss(NewCss(Class("uuh")))
@@ -69,11 +70,12 @@ func TestElementApplyCss(t *testing.T) {
 		err(t, "incorrect ApplyCss, error not affected", "element not affected by css rule", nil)
 	}
 }
+*/
 
 func TestElementAdd(t *testing.T) {
 	span := Span()
 	strong := Strong()
-	css := NewCss(Class("good-looking"))
+	//	css := NewCss(Class("good-looking"))
 
 	a := NewElement(Tag("a"))
 	a.Add(
@@ -87,8 +89,8 @@ func TestElementAdd(t *testing.T) {
 		span,
 		strong,
 		span,
-		css,
-		Style("color", "green", "zoom", "1"),
+		//		css,
+		//		Style("color", "green", "zoom", "1"),
 		Attr("height", "300", "width", "200"))
 
 	if a.attributes["height"] != "300" {
@@ -111,18 +113,21 @@ func TestElementAdd(t *testing.T) {
 		err(t, "incorrect class", classes[1], "fancy")
 	}
 
-	if classes[2] != "good-looking" {
-		err(t, "incorrect class from css assignment", classes[2], "good-looking")
-	}
-
-	if a.style["color"] != "green" {
-		err(t, "incorrect color", a.style["color"], "green")
-	}
-
-	if a.style["zoom"] != "1" {
-		err(t, "incorrect zoom", a.style["zoom"], "1")
-	}
-
+	/*
+		if classes[2] != "good-looking" {
+			err(t, "incorrect class from css assignment", classes[2], "good-looking")
+		}
+	*/
+	/*
+		if a.style["color"] != "green" {
+			err(t, "incorrect color", a.style["color"], "green")
+		}
+	*/
+	/*
+		if a.style["zoom"] != "1" {
+			err(t, "incorrect zoom", a.style["zoom"], "1")
+		}
+	*/
 	if span.Parent() != a {
 		err(t, "incorrect parent", span.Parent(), a)
 	}
@@ -142,11 +147,11 @@ func TestElementAdd(t *testing.T) {
 	if a.inner[2] != span {
 		err(t, "incorrect inner content", a.inner[2], span)
 	}
-
-	if span.Path() != "a#myid.fine.fancy.good-looking span" {
-		err(t, "incorrect path", span.Path(), "a#myid.fine.fancy.good-looking span")
-	}
-
+	/*
+		if span.Path() != "a#myid.fine.fancy.good-looking span" {
+			err(t, "incorrect path", span.Path(), "a#myid.fine.fancy.good-looking span")
+		}
+	*/
 	spans := a.All(Tag("span"))
 
 	if len(spans) != 3 {
@@ -332,18 +337,18 @@ func ExampleElement_Add() {
 
 // add / set properties
 func ExampleElement_Add_properties() {
-	css := NewCss(Class("yellow"), Style("background-color", "yellow"))
+	//	css := NewCss(Class("yellow"), Style("background-color", "yellow"))
 	d := Div(Class("first")) // objects to tag constructors like Div(), Body(),... gets passed to Add()
 
 	d.Add(
 		Id("main"),
 		Class("second"),
-		css, // adds the class of the css to the element, multiple *Css can be given
+		//		css, // adds the class of the css to the element, multiple *Css can be given
 		Comment("main row"),
-		Attr("height", "200"),   // multiple attributes at once with Attrs{"height", "200", "width", "300"}
-		Style("width", "500px")) // multiple styles at once with Styles{"height", "200", "width", "300"}
+		Attr("height", "200")) // multiple attributes at once with Attrs{"height", "200", "width", "300"}
+	//Style("width", "500px")) // multiple styles at once with Styles{"height", "200", "width", "300"}
 
-	fmt.Printf("---CSS---%s---HTML---%s\n", css, d)
+	//fmt.Printf("---CSS---%s---HTML---%s\n", css, d)
 	// Output: ---CSS---
 	// .yellow {
 	// 	background-color: yellow;

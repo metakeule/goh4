@@ -176,10 +176,12 @@ func (ø *Element) Path() string {
 }
 
 // creates a Css with Context set to Path()
+/*
 func (ø *Element) NewCss(objects ...Stringer) *Css {
 	objects = append(objects, Context(ø.Path()))
 	return NewCss(objects...)
 }
+*/
 
 func (ø *Element) idPath() (s string) {
 	s = ""
@@ -211,12 +213,14 @@ func (ø *Element) addStyle(styls ...interface{}) {
 	}
 	for _, s := range styls {
 		switch v := s.(type) {
-		case style:
-			ø.style[v.Key] = v.Value
-		case styles:
-			for _, styl := range v {
-				ø.style[styl.Key] = styl.Value
-			}
+		case Style:
+			ø.style[v.Property] = v.Value
+			/*
+				case styles:
+					for _, styl := range v {
+						ø.style[styl.Key] = styl.Value
+					}
+			*/
 		case string:
 			a := strings.Split(v, ":")
 			ø.style[a[0]] = strings.Replace(a[1], ";", "", 1)
@@ -415,22 +419,29 @@ func (ø *Element) Add(objects ...interface{}) (err error) {
 			if err := ø.SetId(v); err != nil {
 				return err
 			}
-		case style:
+		case Style:
 			ø.addStyle(v)
-		case styles:
-			ø.addStyle(v)
-		case *Css:
-			if err := ø.ApplyCss(v); err != nil {
-				return err
-			}
-		default:
+			/*
+				case styles:
+					ø.addStyle(v)
+			*/
+			/*
+				case *Css:
+					if err := ø.ApplyCss(v); err != nil {
+						return err
+					}
+			*/
+		case Stringer:
 			if err := ø.ensureContentAddIsAllowed(); err != nil {
 				return err
 			}
-			stringer, ok := v.(Stringer)
-			if !ok {
-				return fmt.Errorf("%#v  is no Stringer", v)
-			}
+			stringer := v
+			/*
+				stringer, ok := v.(Stringer)
+				if !ok {
+					return fmt.Errorf("%#v  is no Stringer", v)
+				}
+			*/
 			if err := ø.ensureParentIsSetAndContentIsAllowed(stringer); err == nil {
 				// no error: is an Elementer
 				ø.inner = append(ø.inner, stringer)
@@ -443,6 +454,8 @@ func (ø *Element) Add(objects ...interface{}) (err error) {
 				}
 				ø.inner = append(ø.inner, s)
 			}
+		default:
+			return fmt.Errorf("%#v  is no Stringer", v)
 		}
 	}
 	return
@@ -451,6 +464,17 @@ func (ø *Element) Add(objects ...interface{}) (err error) {
 // clears the inner elements and strings
 func (ø *Element) Clear() {
 	ø.inner = []Stringer{}
+}
+
+func (ø *Element) Selector() string {
+	sele := []string{ø.tag.Selector()}
+	if ø.id != Id("") {
+		sele = append(sele, ø.id.Selector())
+	}
+	for _, c := range ø.classes {
+		sele = append(sele, c.Selector())
+	}
+	return strings.Join(sele, "")
 }
 
 // clears the inner object array
@@ -492,7 +516,7 @@ func (ø *Element) classPath(classes []Class) (s string) {
 func (ø *Element) styleAttrString(styles map[string]string) (s string) {
 	s = ""
 	for k, v := range styles {
-		s += style{k, v}.String()
+		s += Style{k, v}.String()
 	}
 	return
 }

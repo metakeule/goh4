@@ -1,6 +1,7 @@
 package goh4
 
 import (
+	"fmt"
 	"html"
 	"regexp"
 	"strings"
@@ -8,6 +9,23 @@ import (
 
 type Stringer interface {
 	String() string
+}
+
+type Selecter interface {
+	Selector() string
+}
+
+type SelectorString string
+
+func (ø SelectorString) Selector() string { return string(ø) }
+
+// combine several selectors to one
+func Selector(selects ...Selecter) Selecter {
+	s := []string{}
+	for _, sel := range selects {
+		s = append(s, sel.Selector())
+	}
+	return SelectorString(strings.Join(s, ""))
 }
 
 type Context string
@@ -22,9 +40,21 @@ type Class string
 
 func (ø Class) String() string { return string(ø) }
 
+func (ø Class) Selector() string { return fmt.Sprintf(".%s", ø) }
+
+func (ø Class) Rule() (r *rule) {
+	return &rule{Selectors: []Selecter{ø}}
+}
+
 type Id string
 
 func (ø Id) String() string { return string(ø) }
+
+func (ø Id) Selector() string { return fmt.Sprintf("#%s", ø) }
+
+func (ø Id) Rule() (r *rule) {
+	return &rule{Selectors: []Selecter{ø}}
+}
 
 type Text string
 
@@ -37,6 +67,16 @@ func (ø Html) String() string { return string(ø) }
 type Tag string
 
 func (ø Tag) String() string { return string(ø) }
+
+func (ø Tag) Selector() string { return ø.String() }
+
+func (ø Tag) Rule() (r *rule) {
+	return &rule{Selectors: []Selecter{ø}}
+}
+
+type Scss string
+
+func (ø Scss) String() string { return string(ø) }
 
 type tags []Tag
 
@@ -61,6 +101,7 @@ func (ø tags) String() string {
 	return strings.Join(str, ", ")
 }
 
+/*
 type style struct {
 	Key   string
 	Value string
@@ -81,13 +122,14 @@ func (ø styles) String() (s string) {
 // helper to easily create multiple styles
 // use is like this
 // Style("width","200px","height","30px","color","green")
-func Style(ø ...string) (s styles) {
+func Styles(ø ...string) (s styles) {
 	s = styles{}
 	for i := 0; i < len(ø); i = i + 2 {
 		s = append(s, style{ø[i], ø[i+1]})
 	}
 	return
 }
+*/
 
 type attr struct {
 	Key   string

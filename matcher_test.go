@@ -121,6 +121,7 @@ func TestAttrsMatcher(t *testing.T) {
 	}
 }
 
+/*
 func TestStyleMatcher(t *testing.T) {
 	m := Style("width", "200")
 	if !m.Matches(Div(Style("width", "200"))) {
@@ -140,6 +141,7 @@ func TestStylesMatcher(t *testing.T) {
 		err(t, "incorrect Styles matcher matches", true, false)
 	}
 }
+*/
 
 func TestHtmlMatcher(t *testing.T) {
 	m := Html(A(Text("hiho")).String())

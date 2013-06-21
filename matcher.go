@@ -81,6 +81,7 @@ func (ø Class) Matches(t *Element) bool {
 }
 
 // if Css has a Context, matching always fails
+/*
 func (ø *Css) Matches(t *Element) (m bool) {
 	if ø.Context != "" {
 		// if Css has a Context, matching always fails
@@ -104,6 +105,7 @@ func (ø *Css) Matches(t *Element) (m bool) {
 
 	return
 }
+*/
 
 func (ø Id) Matches(t *Element) bool {
 	if string(t.id) == string(ø) {
@@ -126,10 +128,11 @@ func (ø Tag) Matches(t *Element) bool {
 	return ø == t.tag
 }
 
-func (ø style) Matches(t *Element) bool {
-	return t.style[ø.Key] == ø.Value
+func (ø Style) Matches(t *Element) bool {
+	return t.style[ø.Property] == ø.Value
 }
 
+/*
 func (ø styles) Matches(t *Element) (m bool) {
 	m = true
 	for _, styl := range ø {
@@ -139,6 +142,7 @@ func (ø styles) Matches(t *Element) (m bool) {
 	}
 	return
 }
+*/
 
 func (ø attr) Matches(t *Element) bool {
 	if ø.Key == "id" {
@@ -152,7 +156,7 @@ func (ø attr) Matches(t *Element) bool {
 		m := true
 		for _, st := range styles {
 			a := strings.Split(st, ":")
-			styl := style{a[0], a[1]}
+			styl := Style{a[0], a[1]}
 			if !styl.Matches(t) {
 				m = false
 			}

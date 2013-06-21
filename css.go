@@ -5,229 +5,144 @@ import (
 	"strings"
 )
 
-// interface for a parent of a Css -
-// is implemented by Css but allows
-// your own implementation and interception
-// of method calls
-type CssParenter interface {
-	Styles() map[string]string
-	Comment() string
-	Selector() string
+type Styler interface {
+	StyleCmd() string
 }
 
-// Describes a CSS Statement, consisting of
-// a selector and the styles. Most of the time
-// you'll want to give it a Class().
-type Css struct {
-	class   Class
-	Context Context
-	comment Comment
-	Tags    tags
-	styles  map[string]string
-	parents []CssParenter
+type Import string
+
+func (ø Import) String() string {
+	return fmt.Sprintf("@import %#v;\n", string(ø))
 }
 
-type CssCollection []*Css
-
-func (ø *CssCollection) New(objects ...Stringer) (css *Css) {
-	css = NewCss(objects...)
-	*ø = append(*ø, css)
-	return
+type rule struct {
+	Comment   string
+	Selectors []Selecter
+	Styles    []Styler
+	nested    []*rule
 }
 
-func (ø *CssCollection) Add(css *Css) {
-	*ø = append(*ø, css)
-}
-
-func (ø *CssCollection) Attach(t *Template) {
-	for _, cs := range *ø {
-		t.AddCss(cs)
-	}
-
-}
-
-// TODO make method to write a csscollection to a file
-
-// creates a new Css, based on Stringer objects.
-// the following types are handled in a special way
-//
-// 	- Context: sets the context
-// 	- Tag: adds a single tag
-// 	- Tags: adds multiple tags
-// 	- Style: adds a single style
-// 	- Styles: adds multiple styles
-// 	- Class: sets the class
-// 	- Comment: sets the comment
-//
-// the rest is casted to CssParenter and on success
-// the Css inherits from that
-func NewCss(objects ...Stringer) (c *Css) {
-	c = &Css{
-		Tags:    tags{},
-		styles:  map[string]string{},
-		parents: []CssParenter{},
-	}
-	for _, o := range objects {
-		switch v := o.(type) {
-		case Context:
-			c.Context = v
-		case Tag:
-			c.Tags = append(c.Tags, v)
-		case tags:
-			for _, tg := range v {
-				c.Tags = append(c.Tags, tg)
-			}
-		case styles:
-			for _, styl := range v {
-				c.Set(styl.Key, styl.Value)
-			}
-		case style:
-			c.Set(v.Key, v.Value)
-		case Class:
-			c.class = v
-		case Comment:
-			c.comment = v
+func Rule(xs ...interface{}) (r *rule, err error) {
+	r = &rule{}
+	for _, x := range xs {
+		switch v := x.(type) {
+		case Selecter:
+			r.Selectors = append(r.Selectors, v)
+		case *rule:
+			r.nested = append(r.nested, v)
+		case Styler:
+			r.Styles = append(r.Styles, v)
+		case string:
+			r.Comment = v
 		default:
-			parenter, ok := v.(CssParenter)
-			if ok {
-				c.InheritFrom(parenter)
-			}
+			err = fmt.Errorf("%T is no stringer", x)
+			return
 		}
 	}
 	return
 }
 
-func (ø *Css) Class() string {
-	return ø.class.String()
+func (ø *rule) String() string {
+	styles := []string{}
+	for _, st := range ø.Styles {
+		styles = append(styles, st.StyleCmd()+";")
+	}
+	comment := ""
+	if ø.Comment != "" {
+		comment = fmt.Sprintf("/* %s */\n", ø.Comment)
+	}
+	strs := []string{}
+	for _, s := range ø.Selectors {
+		strs = append(strs, s.Selector())
+	}
+	nested := []string{}
+	for _, nr := range ø.nested {
+		ns := nr.String()
+		for _, nsi := range strings.Split(ns, "\n") {
+			nested = append(nested, nsi)
+		}
+	}
+	return fmt.Sprintf("%s%s {\n\t%s\n\t%s\n}", comment, strings.Join(strs, ",\n"), strings.Join(styles, "\n\t"), strings.Join(nested, "\n\t"))
 }
 
-func (ø *Css) SetClass(c Class) {
-	ø.class = c
+// adds given styles
+func (ø *rule) Style(styles ...Style) *rule {
+	for _, st := range styles {
+		ø.Styles = append(ø.Styles, st)
+	}
+	return ø
 }
 
-func (ø *Css) Comment() string {
-	return ø.comment.String()
-}
-
-func (ø *Css) matchTag(t *Element, tt Tag) (r bool) {
-	r = tt == t.tag
+func (ø *rule) Nest(xs ...interface{}) (i *rule, err error) {
+	i, err = Rule(xs...)
+	if err != nil {
+		return
+	}
+	ø.nested = append(ø.nested, i)
 	return
 }
 
-func (ø *Css) partialSelector(t string) string {
-	sel := ""
-	if t != "" {
-		sel += t
+// returns a copy
+func (ø *rule) Copy() (newrule *rule) {
+	newStyles := []Styler{}
+	for _, st := range ø.Styles {
+		newStyles = append(newStyles, st)
 	}
-	if ø.class != "" {
-		sel += "." + ø.class.String()
+	newSelectors := []Selecter{}
+	for _, st := range ø.Selectors {
+		newSelectors = append(newSelectors, st)
 	}
-
-	if ø.Context != "" {
-		sel = ø.Context.String() + " " + sel
-	}
-	return sel
-}
-
-// constructs and returns the selector
-func (ø *Css) Selector() (s string) {
-	if len(ø.Tags) > 0 {
-		selectors := []string{}
-
-		for _, tt := range ø.Tags {
-			selectors = append(selectors, ø.partialSelector(tt.String()))
-		}
-		s = strings.Join(selectors, ",\n")
-
-	} else {
-		s = ø.partialSelector("")
+	newrule = &rule{
+		Comment:   ø.Comment,
+		Styles:    newStyles,
+		Selectors: newSelectors,
 	}
 	return
 }
 
-func (ø *Css) styleString() (r string) {
-	r = ""
-	consolidated := map[string]string{}
-	inherited := map[string]CssParenter{}
-	for _, p := range ø.parents {
-		for k, v := range p.Styles() {
-			inherited[k] = p
-			consolidated[k] = v
-		}
+// returns a copy that is embedded in the selector
+func (ø *rule) Embed(selector Selecter) (newrule *rule) {
+	newrule = ø.Copy()
+	newSelectors := []Selecter{}
+	for _, s := range ø.Selectors {
+		newSelectors = append(newSelectors, SelectorString(selector.Selector()+" "+s.Selector()))
 	}
-	for k, v := range ø.styles {
-		if inherited[k] != nil {
-			delete(inherited, k)
-		}
-		consolidated[k] = v
-	}
-
-	for k, v := range consolidated {
-		comment := ""
-		if p := inherited[k]; p != nil {
-			cmt := ""
-			if p.Comment() != "" {
-				cmt = `: "` + p.Comment() + `"`
-			}
-			comment = fmt.Sprintf("\t/* inherited from »%s«%s */", p.Selector(), cmt)
-		}
-		r += fmt.Sprintf("\t%s%s\n", style{k, v}, comment)
-	}
-
+	newrule.Selectors = newSelectors
 	return
 }
 
-// return the Css as stylesheet string
-func (ø *Css) String() string {
-	descr := ""
-	if ø.Comment() != "" {
-		descr += fmt.Sprintf("\n/* %s */\n", ø.Comment())
-	}
-	return fmt.Sprintf("\n%s%s {\n%s}\n", descr, ø.Selector(), ø.styleString())
-}
-
-// set the styles, they are given in pairs, e.g.
-//
-// 	Set("color","green","width","200")
-func (ø *Css) Set(vals ...string) {
-	for i := 0; i < len(vals); i = i + 2 {
-		ø.styles[vals[i]] = vals[i+1]
-	}
-}
-
-// returns the styles that are inherited (own overwrites are not respected)
-func (ø *Css) InheritedStyles() map[string]string {
-	inherited := map[string]string{}
-	for _, p := range ø.parents {
-		for k, v := range p.Styles() {
-			inherited[k] = v
+// returns a copy that is a composition of this rule with the styles
+// of other rules
+func (ø *rule) Compose(parents ...*rule) (newrule *rule) {
+	newrule = ø.Copy()
+	for _, parent := range parents {
+		for _, st := range parent.Styles {
+			newrule.Styles = append(newrule.Styles, st)
 		}
 	}
-	return inherited
+	return
 }
 
-// returns the styles that are not inherited
-func (ø *Css) OwnStyles() map[string]string {
-	return ø.styles
-}
+//type Css []*rule
+type Css []Stringer
 
-// returns the styles with the inherited, overwritten by the own
-func (ø *Css) Styles() map[string]string {
-	consolidated := map[string]string{}
-	for _, p := range ø.parents {
-		for k, v := range p.Styles() {
-			consolidated[k] = v
-		}
+// returns a copy with all rules embedded with selector
+/*
+func (ø Css) Embed(selector Selecter) (newCss Css) {
+	newCss = []*rule{}
+	for _, r := range ø {
+		newCss = append(newCss, r.Embed(selector))
 	}
-	for k, v := range ø.styles {
-		consolidated[k] = v
-	}
-	return consolidated
+	return
 }
+*/
 
-// lets the Css inherit from the given CssParenter
-func (ø *Css) InheritFrom(ps ...CssParenter) {
-	for _, p := range ps {
-		ø.parents = append(ø.parents, p)
+func (ø Css) String() string {
+	rules := []string{}
+
+	for _, r := range ø {
+		rules = append(rules, r.String())
 	}
+
+	return strings.Join(rules, "\n\n")
 }
