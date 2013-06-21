@@ -26,18 +26,21 @@ func Rule(xs ...interface{}) (r *RuleStruct, err error) {
 	r = &RuleStruct{}
 	for _, x := range xs {
 		switch v := x.(type) {
+		// we don't want to handle *RuleStruct and *rules here,
+		// since there would be different ways to handle them (Next, Embed, Compose )
+		// and we don't want to have a implicit default way
 		case Selecter:
 			r.Selectors = append(r.Selectors, v)
-		case *RuleStruct:
-			r.nested = append(r.nested, v)
 		case Styler:
 			r.Styles = append(r.Styles, v)
 		case []Style:
 			r.Style(v...)
 		case string:
 			r.Comment = v
+		case Comment:
+			r.Comment = string(v)
 		default:
-			err = fmt.Errorf("%T is no stringer", x)
+			err = fmt.Errorf("%T is not an allowed type", x)
 			return
 		}
 	}
@@ -60,7 +63,8 @@ func (ø *RuleStruct) String() string {
 	nested := []string{}
 	for _, nr := range ø.nested {
 		ns := nr.String()
-		for _, nsi := range strings.Split(ns, "\n") {
+		nssp := strings.Split(ns, "\n")
+		for _, nsi := range nssp {
 			nested = append(nested, nsi)
 		}
 	}
