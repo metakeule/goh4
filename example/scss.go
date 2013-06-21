@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	. "github.com/metakeule/goh4"
+	"github.com/metakeule/goh4/scss"
 	attr "github.com/metakeule/goh4/selectors/attributematcher"
 	comb "github.com/metakeule/goh4/selectors/combinators"
 	pseudo "github.com/metakeule/goh4/selectors/pseudoclasses"
@@ -12,7 +13,7 @@ import (
 func main() {
 	topId := Id("top")
 	activeClass := Class("active")
-	blueBorder := BorderColor().Val("blue")
+	blueBorder := BorderColor("blue")
 
 	a := A(activeClass, topId)
 
@@ -30,11 +31,11 @@ func main() {
 	)
 	// fmt.Println(rule3)
 
-	yellow := ScssVar("yellow").Val("yellow")
+	yellow := scss.Var("yellow").Val("yellow")
 
 	rule4, _ := Rule(
 		Selector(topId, activeClass, pseudo.Link()),
-		BackgroundColor().Var(yellow),
+		BackgroundColor(yellow.Name()),
 		blueBorder,
 	)
 	rule4.Nest(
@@ -49,7 +50,7 @@ func main() {
 	rule4.Nest(
 		comb.Descendant(
 			Body(Class("firefox")),
-			ScssParent,
+			scss.Parent,
 		),
 		blueBorder,
 	)
@@ -61,10 +62,10 @@ func main() {
 			rule4,
 			"\n")
 	*/
-	vert := ScssParam("vert")
-	horz := ScssParam("horz")
-	radius := ScssParam("radius").Default("10px")
-	rounded := ScssMixin("rounded", vert, horz, radius)
+	vert := scss.Param("vert")
+	horz := scss.Param("horz")
+	radius := scss.Param("radius").Default("10px")
+	rounded := scss.Mixin("rounded", vert, horz, radius)
 	rounded.Style(
 		Style{fmt.Sprintf("border-#{%s}-#{%s}-radius", vert, horz), radius.Name()},
 		Style{fmt.Sprintf("-moz-border-radius-#{%s}-#{%s}", vert, horz), radius.Name()},
@@ -72,20 +73,22 @@ func main() {
 	)
 	// fmt.Println(rounded)
 
-	rule5, _ := Rule(Li(Id("navbar")), ScssInclude(rounded.Name, "top", "left"))
+	rule5, _ := Rule(Li(Id("navbar")), scss.Include(rounded.Name, "top", "left"))
 	// fmt.Println(rule5)
 
-	rule6, _ := Rule(Id("footer"), ScssInclude(rounded.Name, "top", "left", "5px"))
-	rule7, _ := Rule(Id("sidebar"), ScssInclude(rounded.Name, "top", "left", "8px"))
+	rule6, _ := Rule(Id("footer"), scss.Include(rounded.Name, "top", "left", "5px"))
+	rule7, _ := Rule(Id("sidebar"), scss.Include(rounded.Name, "top", "left", "8px"))
 	// fmt.Println(rule6)
 	// fmt.Println(rule7)
 
 	rule8, _ := Rule(
 		Id("footer"),
-		BackgroundColor().Call("lighten", yellow.Name(), "20%"),
+		BackgroundColor(scss.Call("lighten", yellow.Name(), "20%").String()),
 	)
 	// fmt.Println(rule8)
 
-	css = append(css, rule1, rule2, rule3, yellow, rule4, rounded, rule5, rule6, rule7, rule8)
+	rule9, _ := Rule(Context(activeClass, a, topId), blueBorder)
+
+	css = append(css, rule1, rule2, rule3, yellow, rule4, rounded, rule5, rule6, rule7, rule8, rule9)
 	fmt.Println(css)
 }

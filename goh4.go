@@ -28,9 +28,21 @@ func Selector(selects ...Selecter) Selecter {
 	return SelectorString(strings.Join(s, ""))
 }
 
-type Context string
+func Context(ctx Selecter, inner ...Selecter) (r Selecter) {
+	sel := []string{}
+	for _, i := range inner {
+		sel = append(sel, ctx.Selector()+" "+i.Selector())
+	}
+	return SelectorString(strings.Join(sel, ",\n"))
+}
 
-func (ø Context) String() string { return string(ø) }
+func ContextString(ctx string, inner ...Selecter) (r Selecter) {
+	return Context(SelectorString(ctx), inner...)
+}
+
+// type Context string
+
+// func (ø Context) String() string { return string(ø) }
 
 type Comment string
 
@@ -42,8 +54,8 @@ func (ø Class) String() string { return string(ø) }
 
 func (ø Class) Selector() string { return fmt.Sprintf(".%s", ø) }
 
-func (ø Class) Rule() (r *rule) {
-	return &rule{Selectors: []Selecter{ø}}
+func (ø Class) Rule() (r *RuleStruct) {
+	return &RuleStruct{Selectors: []Selecter{ø}}
 }
 
 type Id string
@@ -52,8 +64,8 @@ func (ø Id) String() string { return string(ø) }
 
 func (ø Id) Selector() string { return fmt.Sprintf("#%s", ø) }
 
-func (ø Id) Rule() (r *rule) {
-	return &rule{Selectors: []Selecter{ø}}
+func (ø Id) Rule() (r *RuleStruct) {
+	return &RuleStruct{Selectors: []Selecter{ø}}
 }
 
 type Text string
@@ -70,8 +82,8 @@ func (ø Tag) String() string { return string(ø) }
 
 func (ø Tag) Selector() string { return ø.String() }
 
-func (ø Tag) Rule() (r *rule) {
-	return &rule{Selectors: []Selecter{ø}}
+func (ø Tag) Rule() (r *RuleStruct) {
+	return &RuleStruct{Selectors: []Selecter{ø}}
 }
 
 type Scss string

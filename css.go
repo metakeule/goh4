@@ -6,7 +6,7 @@ import (
 )
 
 type Styler interface {
-	StyleCmd() string
+	Style() string
 }
 
 type Import string
@@ -15,23 +15,25 @@ func (ø Import) String() string {
 	return fmt.Sprintf("@import %#v;\n", string(ø))
 }
 
-type rule struct {
+type RuleStruct struct {
 	Comment   string
 	Selectors []Selecter
 	Styles    []Styler
-	nested    []*rule
+	nested    []*RuleStruct
 }
 
-func Rule(xs ...interface{}) (r *rule, err error) {
-	r = &rule{}
+func Rule(xs ...interface{}) (r *RuleStruct, err error) {
+	r = &RuleStruct{}
 	for _, x := range xs {
 		switch v := x.(type) {
 		case Selecter:
 			r.Selectors = append(r.Selectors, v)
-		case *rule:
+		case *RuleStruct:
 			r.nested = append(r.nested, v)
 		case Styler:
 			r.Styles = append(r.Styles, v)
+		case []Style:
+			r.Style(v...)
 		case string:
 			r.Comment = v
 		default:
@@ -42,10 +44,10 @@ func Rule(xs ...interface{}) (r *rule, err error) {
 	return
 }
 
-func (ø *rule) String() string {
+func (ø *RuleStruct) String() string {
 	styles := []string{}
 	for _, st := range ø.Styles {
-		styles = append(styles, st.StyleCmd()+";")
+		styles = append(styles, st.Style()+";")
 	}
 	comment := ""
 	if ø.Comment != "" {
@@ -66,14 +68,14 @@ func (ø *rule) String() string {
 }
 
 // adds given styles
-func (ø *rule) Style(styles ...Style) *rule {
+func (ø *RuleStruct) Style(styles ...Style) *RuleStruct {
 	for _, st := range styles {
 		ø.Styles = append(ø.Styles, st)
 	}
 	return ø
 }
 
-func (ø *rule) Nest(xs ...interface{}) (i *rule, err error) {
+func (ø *RuleStruct) Nest(xs ...interface{}) (i *RuleStruct, err error) {
 	i, err = Rule(xs...)
 	if err != nil {
 		return
@@ -83,7 +85,7 @@ func (ø *rule) Nest(xs ...interface{}) (i *rule, err error) {
 }
 
 // returns a copy
-func (ø *rule) Copy() (newrule *rule) {
+func (ø *RuleStruct) Copy() (newrule *RuleStruct) {
 	newStyles := []Styler{}
 	for _, st := range ø.Styles {
 		newStyles = append(newStyles, st)
@@ -92,7 +94,7 @@ func (ø *rule) Copy() (newrule *rule) {
 	for _, st := range ø.Selectors {
 		newSelectors = append(newSelectors, st)
 	}
-	newrule = &rule{
+	newrule = &RuleStruct{
 		Comment:   ø.Comment,
 		Styles:    newStyles,
 		Selectors: newSelectors,
@@ -101,7 +103,7 @@ func (ø *rule) Copy() (newrule *rule) {
 }
 
 // returns a copy that is embedded in the selector
-func (ø *rule) Embed(selector Selecter) (newrule *rule) {
+func (ø *RuleStruct) Embed(selector Selecter) (newrule *RuleStruct) {
 	newrule = ø.Copy()
 	newSelectors := []Selecter{}
 	for _, s := range ø.Selectors {
@@ -113,7 +115,7 @@ func (ø *rule) Embed(selector Selecter) (newrule *rule) {
 
 // returns a copy that is a composition of this rule with the styles
 // of other rules
-func (ø *rule) Compose(parents ...*rule) (newrule *rule) {
+func (ø *RuleStruct) Compose(parents ...*RuleStruct) (newrule *RuleStruct) {
 	newrule = ø.Copy()
 	for _, parent := range parents {
 		for _, st := range parent.Styles {
@@ -123,19 +125,48 @@ func (ø *rule) Compose(parents ...*rule) (newrule *rule) {
 	return
 }
 
-//type Css []*rule
-type Css []Stringer
+type rules struct {
+	rules []*RuleStruct
+}
 
-// returns a copy with all rules embedded with selector
-/*
-func (ø Css) Embed(selector Selecter) (newCss Css) {
-	newCss = []*rule{}
-	for _, r := range ø {
-		newCss = append(newCss, r.Embed(selector))
+func Rules() *rules {
+	r := []*RuleStruct{}
+	return &rules{r}
+}
+
+func (ø *rules) Add(r *RuleStruct) {
+	ø.rules = append(ø.rules, r)
+}
+
+func (ø *rules) New(xs ...interface{}) (r *RuleStruct, err error) {
+	r, err = Rule(xs...)
+	if err != nil {
+		return
 	}
+	ø.Add(r)
 	return
 }
-*/
+
+func (ø *rules) String() string {
+	rules := []string{}
+
+	for _, r := range ø.rules {
+		rules = append(rules, r.String())
+	}
+
+	return strings.Join(rules, "\n\n")
+}
+
+// returns a copy with all rules embedded with selector
+func (ø *rules) Embed(selector Selecter) *rules {
+	newRules := []*RuleStruct{}
+	for _, r := range ø.rules {
+		newRules = append(newRules, r.Embed(selector))
+	}
+	return &rules{newRules}
+}
+
+type Css []Stringer
 
 func (ø Css) String() string {
 	rules := []string{}
