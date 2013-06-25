@@ -1,4 +1,8 @@
-package goh4
+package tags
+
+import (
+	. "github.com/metakeule/goh4"
+)
 
 // pseudo element for placeholder
 func Doc(objects ...interface{}) (t *Element) {

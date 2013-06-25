@@ -1,6 +1,8 @@
 package goh4
 
-import "strings"
+import (
+	"strings"
+)
 
 // something that matches an Element
 type Matcher interface {
@@ -169,7 +171,7 @@ func (ø attr) Matches(t *Element) bool {
 	return false
 }
 
-func (ø attrs) Matches(t *Element) (m bool) {
+func (ø Attrs) Matches(t *Element) (m bool) {
 	m = true
 	for _, attr := range ø {
 		if !attr.Matches(t) {

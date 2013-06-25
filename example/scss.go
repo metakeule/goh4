@@ -40,7 +40,7 @@ func main() {
 	)
 	rule4.Nest(
 		Selector(
-			Tag("textarea"),
+			Textarea(),
 			activeClass,
 			attr.BeginsWith("name", "comment"),
 		),
@@ -83,7 +83,7 @@ func main() {
 
 	rule8, _ := Rule(
 		Id("footer"),
-		BackgroundColor(scss.Call("lighten", yellow.Name(), "20%").String()),
+		BackgroundColor(scss.Call("lighten", yellow.Name(), PERCENT(20)).String()),
 	)
 	// fmt.Println(rule8)
 
@@ -91,4 +91,9 @@ func main() {
 
 	css = append(css, rule1, rule2, rule3, yellow, rule4, rounded, rule5, rule6, rule7, rule8, rule9)
 	fmt.Println(css)
+
+	fmt.Println(blueBorder.Value)
+
+	fmt.Println(Div(Styles(Display(NONE)), "hiho"))
+	fmt.Println(Div(Display(NONE), FontWeight(BOLD), "hiho"))
 }

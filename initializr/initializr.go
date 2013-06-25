@@ -3,6 +3,7 @@ package initializr
 import (
 	ŧ "fmt"
 	. "github.com/metakeule/goh4"
+	. "github.com/metakeule/goh4/tags"
 	"io/ioutil"
 	ħ "net/http"
 	"os"
@@ -96,9 +97,9 @@ var style string = `
   }
 `
 var lf string = "\n"
-var charset = Meta(Attr("charset", "utf-8"))
-var chromeFrame = Meta(Attr("http-equiv", "X-UA-Compatible"), Attr("content", "IE=edge,chrome=1"))
-var viewport = Meta(Attr("name", "viewport"), Attr("content", "width=device-width"))
+var charset = META(Attr("charset", "utf-8"))
+var chromeFrame = META(Attr("http-equiv", "X-UA-Compatible"), Attr("content", "IE=edge,chrome=1"))
+var viewport = META(Attr("name", "viewport"), Attr("content", "width=device-width"))
 
 func (ø *Initializr) Compile() (*CompiledTemplate, error) {
 	ø.Template.Add(Html(post))
@@ -156,12 +157,12 @@ func (ø *Initializr) AddCssFile(f string) {
 	ø.cachedCss = append(ø.cachedCss, file(f))
 	// ŧ.Printf("adding css file %v, cachedcss: %#v\n", f, ø.cachedCss)
 	if !ø.UseCachedFiles {
-		ø.Head.Add(Link(Attr("rel", "stylesheet"), Attr("href", f)), lf)
+		ø.Head.Add(LINK(Attr("rel", "stylesheet"), Attr("href", f)), lf)
 	}
 }
 
 func (ø *Initializr) AddMetaDescription(descr string) {
-	ø.Head.Add(Meta(Attr("name", "description"), Attr("content", descr)), lf)
+	ø.Head.Add(META(Attr("name", "description"), Attr("content", descr)), lf)
 }
 
 func (ø *Initializr) AddStyle(css string) {
@@ -169,7 +170,7 @@ func (ø *Initializr) AddStyle(css string) {
 	ø.cachedCss = append(ø.cachedCss, directText(css))
 	if !ø.UseCachedFiles {
 		styleTag := NewElement("style", Invisible)
-		styleTag.Add(css)
+		styleTag.Add(Html("\n" + css + "\n"))
 		ø.Head.Add(styleTag)
 	}
 }
@@ -178,7 +179,7 @@ func (ø *Initializr) AddScriptFile(f string) {
 	// ŧ.Printf("adding js file %v cachedJs: %#v\n", f, ø.cachedJs)
 	ø.cachedJs = append(ø.cachedJs, file(f))
 	if !ø.UseCachedFiles {
-		ø.Body.Add(Script(Attr("src", f)))
+		ø.Body.Add(SCRIPT(Attr("src", f)))
 	}
 }
 
@@ -186,7 +187,7 @@ func (ø *Initializr) AddScriptFileHead(f string) {
 	// ŧ.Printf("adding js file head %v cachedJsHead: %#v\n", f, ø.cachedJsHead)
 	ø.cachedJsHead = append(ø.cachedJsHead, file(f))
 	if !ø.UseCachedFiles {
-		ø.Head.Add(Script(Attr("src", f)))
+		ø.Head.Add(SCRIPT(Attr("src", f)))
 	}
 }
 
@@ -194,7 +195,7 @@ func (ø *Initializr) AddScriptHead(js string) {
 	// ŧ.Printf("adding js head %v cachedJsHead: %#v\n", js, ø.cachedJsHead)
 	ø.cachedJsHead = append(ø.cachedJsHead, directText(js))
 	if !ø.UseCachedFiles {
-		ø.Head.Add(Script(Html(js)))
+		ø.Head.Add(SCRIPT(Html(js)))
 	}
 }
 
@@ -202,7 +203,7 @@ func (ø *Initializr) AddScript(js string) {
 	// ŧ.Printf("adding js %v cachedJs: %#v\n", js, ø.cachedJs)
 	ø.cachedJs = append(ø.cachedJs, directText(js))
 	if !ø.UseCachedFiles {
-		ø.Body.Add(Script(Html(js)))
+		ø.Body.Add(SCRIPT(Html(js)))
 	}
 }
 
@@ -214,19 +215,19 @@ func (ø *Initializr) AddGoogleAnalytics(account string) {
 }
 
 func (ø *Initializr) NewContainter() *Element {
-	return Div(Class("container"))
+	return DIV(Class("container"))
 }
 
 func (ø *Initializr) SetupHead() {
 	if ø.UseCachedFiles {
-		ø.Head.Add(Link(Attr("rel", "stylesheet"), Attr("href", ø.cssPathed(cachedCssPath))), lf)
-		ø.Head.Add(Script(Attr("src", ø.jsPathed(cachedJsHeadPath))))
+		ø.Head.Add(LINK(Attr("rel", "stylesheet"), Attr("href", ø.cssPathed(cachedCssPath))), lf)
+		ø.Head.Add(SCRIPT(Attr("src", ø.jsPathed(cachedJsHeadPath))))
 	} else {
 		ø.AddCssFile(ø.cssPathed("%s/bootstrap.min.css"))
 		ø.AddStyle(style)
 		ø.AddCssFile(ø.cssPathed("%s/bootstrap-responsive.min.css"))
 		//ø.AddCssFile(ø.cssPathed("%s/main.css"))
-		ø.Head.Add(Script(Attr("src", ø.jsPathed("%s/modernizr-2.6.2-respond-1.1.0.min.js"))))
+		ø.Head.Add(SCRIPT(Attr("src", ø.jsPathed("%s/modernizr-2.6.2-respond-1.1.0.min.js"))))
 	}
 }
 
@@ -234,11 +235,11 @@ func (ø *Initializr) SetupBody() {
 	ø.Body.Add(Html(infoChromeFrame))
 	ø.Body.Add(Html(infoBootstrap))
 	ø.Navigation = ø.NewContainter()
-	navBar := Div(
+	navBar := DIV(
 		Class("navbar"),
 		Class("navbar-inverse"),
 		Class("navbar-fixed-top"),
-		Div(
+		DIV(
 			Class("navbar-inner"),
 			ø.Navigation))
 	ø.Body.Add(navBar)
@@ -246,7 +247,7 @@ func (ø *Initializr) SetupBody() {
 	ø.Main = ø.NewContainter()
 	ø.Body.Add(ø.Main)
 	if ø.UseCachedFiles {
-		ø.Body.Add(Script(Attr("src", ø.jsPathed(cachedJsPath))))
+		ø.Body.Add(SCRIPT(Attr("src", ø.jsPathed(cachedJsPath))))
 	} else {
 		ø.AddScriptFileHead("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js")
 		ø.AddScriptHead(ø.jsPathed(`window.jQuery || document.write('<script src="%s/jquery-1.8.3.min.js"><\/script>')`))
@@ -262,8 +263,8 @@ func Layout() (layout *Initializr) {
 		Template:     &Template{Element: Doc(Html(pre))},
 		pre:          pre,
 		post:         post,
-		Head:         Head(lf, charset, lf, chromeFrame, lf, viewport, lf),
-		Body:         Body(),
+		Head:         HEAD(lf, charset, lf, chromeFrame, lf, viewport, lf),
+		Body:         BODY(),
 		CssPath:      "/css",
 		JsPath:       "/js",
 		cachedJs:     []Loadable{},

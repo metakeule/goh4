@@ -2,6 +2,7 @@ package initializr
 
 import (
 	. "github.com/metakeule/goh4"
+	. "github.com/metakeule/goh4/tags"
 )
 
 var exampleText string = `Donec id elit non mi porta gravida at eget metus.
@@ -10,7 +11,7 @@ var exampleText string = `Donec id elit non mi porta gravida at eget metus.
 													mollis euismod. Donec sed odio dui.`
 
 func exampleSpan4(text string) (t *Element) {
-	t = Div(Class("span4"))
+	t = DIV(Class("span4"))
 	t.Add(
 		H(2, "heading"),
 		P(text),
@@ -24,7 +25,7 @@ func exampleSpan4(text string) (t *Element) {
 }
 
 func SetupExampleMain(ø *Initializr) {
-	hero := Div(Class("hero-unit"))
+	hero := DIV(Class("hero-unit"))
 	hero.Add(
 		H(1, "Hello, world!"),
 		P(`This is a template for a simple marketing or informational
@@ -38,7 +39,7 @@ func SetupExampleMain(ø *Initializr) {
 				Class("btn-primary"),
 				Class("btn-large"))))
 
-	row := Div(Class("row"))
+	row := DIV(Class("row"))
 	row.Add(
 		exampleSpan4(exampleText),
 		exampleSpan4(exampleText),
@@ -48,6 +49,6 @@ func SetupExampleMain(ø *Initializr) {
 	ø.Main.Add(
 		hero,
 		row,
-		Hr(),
-		Footer(Html("&copy; Company 2012")))
+		HR(),
+		FOOTER(Html("&copy; Company 2012")))
 }

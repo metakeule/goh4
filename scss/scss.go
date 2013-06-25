@@ -16,8 +16,8 @@ var Parent = goh4.SelectorString("&")
 func Var(name string) var_           { return var_{Name_: name} }
 func (ø var_) Val(value string) var_ { return var_{ø.Name_, value} }
 func (ø var_) Name() string          { return "$" + ø.Name_ }
-func (ø var_) Style() string         { return fmt.Sprintf("%s: %s", ø.Name(), ø.Value) }
-func (ø var_) String() string        { return ø.Style() + ";" }
+func (ø var_) Style() string         { return fmt.Sprintf("%s: %s;", ø.Name(), ø.Value) }
+func (ø var_) String() string        { return ø.Style() }
 func (ø var_) Selector() string      { return fmt.Sprintf("#{%s}", ø.String()) }
 
 type param struct {
@@ -84,12 +84,14 @@ func Call(fn string, args ...string) (ø *call) {
 }
 
 func (ø *call) Style() (s string) {
+	return ø.String() + ";"
+}
+
+func (ø *call) String() (s string) {
 	m := mixin(*ø)
 	s = fmt.Sprintf("%s(%s)", m.Name, m.argString())
 	return
 }
-
-func (ø *call) String() (s string) { return ø.Style() }
 
 func Include(mixin string, args ...string) (ø *include) {
 	ø = &include{}
@@ -101,9 +103,9 @@ func Include(mixin string, args ...string) (ø *include) {
 func (ø *include) Style() (s string) {
 	m := mixin(*ø)
 	if len(m.Args) == 0 {
-		s = fmt.Sprintf("@include %s", m.Name)
+		s = fmt.Sprintf("@include %s;", m.Name)
 	} else {
-		s = fmt.Sprintf("@include %s(%s)", m.Name, m.argString())
+		s = fmt.Sprintf("@include %s(%s);", m.Name, m.argString())
 	}
 	return
 }

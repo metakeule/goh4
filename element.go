@@ -72,7 +72,7 @@ type Element struct {
 	classes    []Class
 	id         Id
 	inner      []Stringer
-	parentTags tags
+	ParentTags tags
 	style      map[string]string
 	flags      flag
 	tag        Tag
@@ -102,7 +102,7 @@ func NewElement(t Tag, flags ...flag) (ø *Element) {
 		tag:        t,
 		flags:      hasDefaults,
 		style:      map[string]string{},
-		parentTags: tags{},
+		ParentTags: tags{},
 	}
 
 	for _, flag := range flags {
@@ -193,11 +193,11 @@ func (ø *Element) idPath() (s string) {
 
 // return false if the given Parent tag is not allowed for Elements tag
 func (ø *Element) IsParentAllowed(parent Tager) (allowed bool) {
-	if len(ø.parentTags) == 0 {
+	if len(ø.ParentTags) == 0 {
 		return true
 	}
 	allowed = false
-	for _, p := range ø.parentTags {
+	for _, p := range ø.ParentTags {
 		if p.String() == parent.Tag() {
 			allowed = true
 		}
@@ -213,6 +213,10 @@ func (ø *Element) addStyle(styls ...interface{}) {
 	}
 	for _, s := range styls {
 		switch v := s.(type) {
+		case []Style:
+			for _, st := range v {
+				ø.style[st.Property] = st.Value
+			}
 		case Style:
 			ø.style[v.Property] = v.Value
 			/*
@@ -235,6 +239,7 @@ func (ø *Element) addStyle(styls ...interface{}) {
 // beware that it will always fail if the Css has a context, because the
 // matcher can't properly figure out if an element is within a context
 // that remains to be done (but requires a proper css selector parser)
+/*
 func (ø *Element) ApplyCss(rules ...Csser) (err error) {
 	for _, r := range rules {
 		if r.Class() == "" {
@@ -251,6 +256,7 @@ func (ø *Element) ApplyCss(rules ...Csser) (err error) {
 	}
 	return
 }
+*/
 
 // returns an error if the Element is self closing
 func (ø *Element) ensureContentAddIsAllowed() (err error) {
@@ -405,11 +411,19 @@ func (ø *Element) Add(objects ...interface{}) (err error) {
 			ø.inner = append(ø.inner, v)
 		case Comment:
 			ø.Comment = v
+
 		case attr:
 			ø.SetAttribute(v.Key, v.Value)
-		case attrs:
+
+		case Attrs:
 			for _, atr := range v {
 				ø.SetAttribute(atr.Key, atr.Value)
+			}
+		case classes:
+			for _, cl := range v {
+				if err := ø.AddClass(cl); err != nil {
+					return err
+				}
 			}
 		case Class:
 			if err := ø.AddClass(v); err != nil {
@@ -431,6 +445,8 @@ func (ø *Element) Add(objects ...interface{}) (err error) {
 						return err
 					}
 			*/
+		case []Style:
+			ø.addStyle(v)
 		case Stringer:
 			if err := ø.ensureContentAddIsAllowed(); err != nil {
 				return err

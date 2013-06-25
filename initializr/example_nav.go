@@ -2,10 +2,11 @@ package initializr
 
 import (
 	. "github.com/metakeule/goh4"
+	. "github.com/metakeule/goh4/tags"
 )
 
 func exampleLiA(href string, text string) *Element {
-	return Li(A(text, Attr("href", href)))
+	return LI(A(text, Attr("href", href)))
 }
 
 func SetupExampleNavigation(ø *Initializr) {
@@ -15,20 +16,20 @@ func SetupExampleNavigation(ø *Initializr) {
 		Attr("data-toggle", "collapse"),
 		Attr("data-target", ".nav-collapse"))
 
-	btn.Add(Span(Class("icon-bar")))
-	btn.Add(Span(Class("icon-bar")))
-	btn.Add(Span(Class("icon-bar")))
+	btn.Add(SPAN(Class("icon-bar")))
+	btn.Add(SPAN(Class("icon-bar")))
+	btn.Add(SPAN(Class("icon-bar")))
 
-	dropDownMenu := Ul(Class("dropdown-menu"))
+	dropDownMenu := UL(Class("dropdown-menu"))
 	dropDownMenu.Add(exampleLiA("#", "Action"))
 	dropDownMenu.Add(exampleLiA("#", "Another action"))
 	dropDownMenu.Add(exampleLiA("#", "Something else here"))
-	dropDownMenu.Add(Li(Class("divider")))
-	dropDownMenu.Add(Li(Class("nav-header"), "Nav header"))
+	dropDownMenu.Add(LI(Class("divider")))
+	dropDownMenu.Add(LI(Class("nav-header"), "Nav header"))
 	dropDownMenu.Add(exampleLiA("#", "Separated link"))
 	dropDownMenu.Add(exampleLiA("#", "One more separated link"))
 
-	dropDown := Li(Class("dropdown"))
+	dropDown := LI(Class("dropdown"))
 
 	dropdownToggle := A(
 		Class("dropdown-toggle"),
@@ -38,18 +39,18 @@ func SetupExampleNavigation(ø *Initializr) {
 	dropDown.Add(dropdownToggle)
 	dropDown.Add(dropDownMenu)
 
-	navUl := Ul(Class("nav"))
-	navUl.Add(Li(Class("active"), A(Attr("href", "#"), "Home")))
+	navUl := UL(Class("nav"))
+	navUl.Add(LI(Class("active"), A(Attr("href", "#"), "Home")))
 	navUl.Add(exampleLiA("#about", "About"))
 	navUl.Add(exampleLiA("#contact", "Contact"))
 	navUl.Add(dropDown)
 
-	form := Form(Class("navbar-form"), Class("pull-right"))
-	form.Add(Input(Class("span2"), Attr("type", "text"), Attr("placeholder", "Email")))
-	form.Add(Input(Class("span2"), Attr("type", "password"), Attr("placeholder", "Password")))
-	form.Add(Button(Class("btn"), Attr("type", "submit"), "Sign in"))
+	form := FORM(Class("navbar-form"), Class("pull-right"))
+	form.Add(INPUT(Class("span2"), Attr("type", "text"), Attr("placeholder", "Email")))
+	form.Add(INPUT(Class("span2"), Attr("type", "password"), Attr("placeholder", "Password")))
+	form.Add(BUTTON(Class("btn"), Attr("type", "submit"), "Sign in"))
 
-	navCollapse := Div(Class("nav-collapse"), Class("collapse"))
+	navCollapse := DIV(Class("nav-collapse"), Class("collapse"))
 	navCollapse.Add(navUl)
 	navCollapse.Add(form)
 

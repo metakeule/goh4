@@ -1,7 +1,8 @@
-package goh4
+package css
 
 import (
 	"fmt"
+	. "github.com/metakeule/goh4"
 	"strings"
 )
 
@@ -16,10 +17,10 @@ func (ø Import) String() string {
 }
 
 type RuleStruct struct {
-	Comment   string
-	Selectors []Selecter
-	Styles    []Styler
-	nested    []*RuleStruct
+	Comment  string
+	Selector Selecter
+	Styles   []Styler
+	nested   []*RuleStruct
 }
 
 func Rule(xs ...interface{}) (r *RuleStruct, err error) {
@@ -30,11 +31,13 @@ func Rule(xs ...interface{}) (r *RuleStruct, err error) {
 		// since there would be different ways to handle them (Next, Embed, Compose )
 		// and we don't want to have a implicit default way
 		case Selecter:
-			r.Selectors = append(r.Selectors, v)
+			r.Selector = v
 		case Styler:
 			r.Styles = append(r.Styles, v)
 		case []Style:
 			r.Style(v...)
+		case []Styler:
+			r.Styles = append(r.Styles, v...)
 		case string:
 			r.Comment = v
 		case Comment:
@@ -47,19 +50,28 @@ func Rule(xs ...interface{}) (r *RuleStruct, err error) {
 	return
 }
 
+// for each selector, my selectors is prefixed and
+// my rules are applied
+func (ø *RuleStruct) ForEach(c SelecterAdder, sel ...Selecter) (*RuleStruct, error) {
+	comb := c.Add(ø.Selector)
+	all := Each()
+	for _, s := range sel {
+		all.Add(comb.Add(s))
+	}
+	return Rule(all, ø.Styles)
+}
+
 func (ø *RuleStruct) String() string {
 	styles := []string{}
 	for _, st := range ø.Styles {
-		styles = append(styles, st.Style()+";")
+		styles = append(styles, st.Style())
 	}
 	comment := ""
 	if ø.Comment != "" {
 		comment = fmt.Sprintf("/* %s */\n", ø.Comment)
 	}
 	strs := []string{}
-	for _, s := range ø.Selectors {
-		strs = append(strs, s.Selector())
-	}
+	strs = append(strs, ø.Selector.Selector())
 	nested := []string{}
 	for _, nr := range ø.nested {
 		ns := nr.String()
@@ -88,20 +100,45 @@ func (ø *RuleStruct) Nest(xs ...interface{}) (i *RuleStruct, err error) {
 	return
 }
 
+func (ø *RuleStruct) _inner(sa SelecterAdder, sel Selecter, xs ...interface{}) (i *RuleStruct, err error) {
+	i, err = Rule(xs...)
+	if err != nil {
+		return
+	}
+	i.Selector = sa.Add(ø.Selector).Add(sel)
+	return
+}
+
+func (ø *RuleStruct) Descendant(sel Selecter, xs ...interface{}) (i *RuleStruct, err error) {
+	return ø._inner(Descendant(), sel, xs...)
+}
+
+func (ø *RuleStruct) Child(sel Selecter, xs ...interface{}) (i *RuleStruct, err error) {
+	return ø._inner(Child(), sel, xs...)
+}
+
+func (ø *RuleStruct) DirectFollows(sel Selecter, xs ...interface{}) (i *RuleStruct, err error) {
+	return ø._inner(DirectFollows(), sel, xs...)
+}
+
+func (ø *RuleStruct) Follows(sel Selecter, xs ...interface{}) (i *RuleStruct, err error) {
+	return ø._inner(Follows(), sel, xs...)
+}
+
+func (ø *RuleStruct) Each(sel Selecter, xs ...interface{}) (i *RuleStruct, err error) {
+	return ø._inner(Each(), sel, xs...)
+}
+
 // returns a copy
 func (ø *RuleStruct) Copy() (newrule *RuleStruct) {
 	newStyles := []Styler{}
 	for _, st := range ø.Styles {
 		newStyles = append(newStyles, st)
 	}
-	newSelectors := []Selecter{}
-	for _, st := range ø.Selectors {
-		newSelectors = append(newSelectors, st)
-	}
 	newrule = &RuleStruct{
-		Comment:   ø.Comment,
-		Styles:    newStyles,
-		Selectors: newSelectors,
+		Comment:  ø.Comment,
+		Styles:   newStyles,
+		Selector: ø.Selector,
 	}
 	return
 }
@@ -109,11 +146,8 @@ func (ø *RuleStruct) Copy() (newrule *RuleStruct) {
 // returns a copy that is embedded in the selector
 func (ø *RuleStruct) Embed(selector Selecter) (newrule *RuleStruct) {
 	newrule = ø.Copy()
-	newSelectors := []Selecter{}
-	for _, s := range ø.Selectors {
-		newSelectors = append(newSelectors, SelectorString(selector.Selector()+" "+s.Selector()))
-	}
-	newrule.Selectors = newSelectors
+	newSelector := SelectorString(selector.Selector() + " " + ø.Selector.Selector())
+	newrule.Selector = newSelector
 	return
 }
 

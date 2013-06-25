@@ -7,39 +7,6 @@ import (
 	"strings"
 )
 
-type Stringer interface {
-	String() string
-}
-
-type Selecter interface {
-	Selector() string
-}
-
-type SelectorString string
-
-func (ø SelectorString) Selector() string { return string(ø) }
-
-// combine several selectors to one
-func Selector(selects ...Selecter) Selecter {
-	s := []string{}
-	for _, sel := range selects {
-		s = append(s, sel.Selector())
-	}
-	return SelectorString(strings.Join(s, ""))
-}
-
-func Context(ctx Selecter, inner ...Selecter) (r Selecter) {
-	sel := []string{}
-	for _, i := range inner {
-		sel = append(sel, ctx.Selector()+" "+i.Selector())
-	}
-	return SelectorString(strings.Join(sel, ",\n"))
-}
-
-func ContextString(ctx string, inner ...Selecter) (r Selecter) {
-	return Context(SelectorString(ctx), inner...)
-}
-
 // type Context string
 
 // func (ø Context) String() string { return string(ø) }
@@ -54,9 +21,21 @@ func (ø Class) String() string { return string(ø) }
 
 func (ø Class) Selector() string { return fmt.Sprintf(".%s", ø) }
 
-func (ø Class) Rule() (r *RuleStruct) {
-	return &RuleStruct{Selectors: []Selecter{ø}}
+type classes []Class
+
+func Classes(c ...string) classes {
+	cl := classes{}
+	for _, cc := range c {
+		cl = append(cl, Class(cc))
+	}
+	return cl
 }
+
+/*
+func (ø Class) Rule() (r *RuleStruct) {
+    return &RuleStruct{Selector: ø}
+}
+*/
 
 type Id string
 
@@ -64,9 +43,11 @@ func (ø Id) String() string { return string(ø) }
 
 func (ø Id) Selector() string { return fmt.Sprintf("#%s", ø) }
 
+/*
 func (ø Id) Rule() (r *RuleStruct) {
-	return &RuleStruct{Selectors: []Selecter{ø}}
+    return &RuleStruct{Selector: ø}
 }
+*/
 
 type Text string
 
@@ -82,27 +63,31 @@ func (ø Tag) String() string { return string(ø) }
 
 func (ø Tag) Selector() string { return ø.String() }
 
-func (ø Tag) Rule() (r *RuleStruct) {
-	return &RuleStruct{Selectors: []Selecter{ø}}
+type attr struct {
+	Key   string
+	Value string
 }
 
-type Scss string
+func (ø attr) String() string { return " " + ø.Key + `="` + html.EscapeString(ø.Value) + `"` }
 
-func (ø Scss) String() string { return string(ø) }
+type Attrs []attr
+
+func (ø Attrs) String() (s string) {
+	ss := []string{}
+	for _, atr := range ø {
+		ss = append(ss, atr.String())
+	}
+	return strings.Join(ss, " ")
+}
 
 type tags []Tag
 
-func Tags(ø ...string) (a tags) {
-	a = tags{}
+func Tags(tag string, ø ...string) (a tags) {
+	a = tags{Tag(tag)}
 	for _, s := range ø {
 		a = append(a, Tag(s))
 	}
 	return
-}
-
-func removeWhiteSpace(in string) string {
-	reg := regexp.MustCompile(`\s`)
-	return reg.ReplaceAllString(in, "")
 }
 
 func (ø tags) String() string {
@@ -111,6 +96,75 @@ func (ø tags) String() string {
 		str = append(str, t.String())
 	}
 	return strings.Join(str, ", ")
+}
+
+// helper to easily create multiple attrs
+// use is like this
+// Attr("width","200px","height","30px","value","hiho")
+func Attr(key1, val1 string, ø ...string) (s Attrs) {
+	s = []attr{attr{key1, val1}}
+	for i := 0; i < len(ø); i = i + 2 {
+		s = append(s, attr{ø[i], ø[i+1]})
+	}
+	return
+}
+
+func Placeholder(name string) Html {
+	return Html("@@" + name + "@@ ")
+}
+
+type Stringer interface {
+	String() string
+}
+
+type Selecter interface {
+	Selector() string
+}
+
+func Context(ctx Selecter, inner1 Selecter, inner ...Selecter) (r Selecter) {
+	sel := []string{}
+	inner = append(inner, inner1)
+	for _, i := range inner {
+		sel = append(sel, ctx.Selector()+" "+i.Selector())
+	}
+	return SelectorString(strings.Join(sel, ",\n"))
+}
+
+func ContextString(ctx string, inner1 Selecter, inner ...Selecter) (r Selecter) {
+	return Context(SelectorString(ctx), inner1, inner...)
+}
+
+type SelecterAdder interface {
+	Selector() string
+	Add(Selecter) SelecterAdder
+}
+
+type SelectorString string
+
+func (ø SelectorString) Selector() string { return string(ø) }
+
+// combine several selectors to one
+func Selector(sel1 Selecter, selects ...Selecter) Selecter {
+	s := []string{sel1.Selector()}
+	for _, sel := range selects {
+		s = append(s, sel.Selector())
+	}
+	return SelectorString(strings.Join(s, ""))
+}
+
+/*
+func (ø Tag) Rule() (r *RuleStruct) {
+	return &RuleStruct{Selector: ø}
+}
+*/
+
+type Scss string
+
+func (ø Scss) String() string { return string(ø) }
+
+func removeWhiteSpace(in string) string {
+	reg := regexp.MustCompile(`\s`)
+	return reg.ReplaceAllString(in, "")
 }
 
 /*
@@ -142,31 +196,3 @@ func Styles(ø ...string) (s styles) {
 	return
 }
 */
-
-type attr struct {
-	Key   string
-	Value string
-}
-
-func (ø attr) String() string { return " " + ø.Key + `="` + html.EscapeString(ø.Value) + `"` }
-
-type attrs []attr
-
-func (ø attrs) String() (s string) {
-	ss := []string{}
-	for _, atr := range ø {
-		ss = append(ss, atr.String())
-	}
-	return strings.Join(ss, " ")
-}
-
-// helper to easily create multiple attrs
-// use is like this
-// Attr("width","200px","height","30px","value","hiho")
-func Attr(ø ...string) (s attrs) {
-	s = []attr{}
-	for i := 0; i < len(ø); i = i + 2 {
-		s = append(s, attr{ø[i], ø[i+1]})
-	}
-	return
-}
