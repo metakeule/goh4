@@ -3,21 +3,20 @@ package main
 import (
 	"fmt"
 	. "github.com/metakeule/goh4"
+	. "github.com/metakeule/goh4/css"
 	"github.com/metakeule/goh4/scss"
-	attr "github.com/metakeule/goh4/selectors/attributematcher"
-	comb "github.com/metakeule/goh4/selectors/combinators"
-	pseudo "github.com/metakeule/goh4/selectors/pseudoclasses"
-	. "github.com/metakeule/goh4/styles"
+	"github.com/metakeule/goh4/sel/attmatch"
+	"github.com/metakeule/goh4/sel/pseudo"
+	. "github.com/metakeule/goh4/styl"
+	. "github.com/metakeule/goh4/tag"
 )
 
 func main() {
-	topId := Id("top")
-	activeClass := Class("active")
+	topId := ID("top")
+	activeClass := CLASS("active")
 	blueBorder := BorderColor("blue")
 
 	a := A(activeClass, topId)
-
-	css := Css{}
 
 	rule1, _ := Rule(a, blueBorder)
 	// fmt.Println(rule1)
@@ -26,7 +25,7 @@ func main() {
 	// fmt.Println(rule2)
 
 	rule3, _ := Rule(
-		comb.Child(Ul(topId), Li(activeClass)),
+		Child(UL(topId), LI(activeClass)),
 		blueBorder,
 	)
 	// fmt.Println(rule3)
@@ -40,17 +39,17 @@ func main() {
 	)
 	rule4.Nest(
 		Selector(
-			Textarea(),
+			TEXTAREA(),
 			activeClass,
-			attr.BeginsWith("name", "comment"),
+			attmatch.BeginsWith("name", "comment"),
 		),
 		blueBorder,
 	)
 
 	rule4.Nest(
-		comb.Descendant(
-			Body(Class("firefox")),
+		Selector(
 			scss.Parent,
+			pseudo.Hover(),
 		),
 		blueBorder,
 	)
@@ -73,27 +72,27 @@ func main() {
 	)
 	// fmt.Println(rounded)
 
-	rule5, _ := Rule(Li(Id("navbar")), scss.Include(rounded.Name, "top", "left"))
+	rule5, _ := Rule(LI(ID("navbar")), scss.Include(rounded.Name, "top", "left"))
 	// fmt.Println(rule5)
 
-	rule6, _ := Rule(Id("footer"), scss.Include(rounded.Name, "top", "left", "5px"))
-	rule7, _ := Rule(Id("sidebar"), scss.Include(rounded.Name, "top", "left", "8px"))
+	rule6, _ := Rule(ID("footer"), scss.Include(rounded.Name, "top", "left", "5px"))
+	rule7, _ := Rule(ID("sidebar"), scss.Include(rounded.Name, "top", "left", "8px"))
 	// fmt.Println(rule6)
 	// fmt.Println(rule7)
 
 	rule8, _ := Rule(
-		Id("footer"),
-		BackgroundColor(scss.Call("lighten", yellow.Name(), PERCENT(20)).String()),
+		ID("footer"),
+		BackgroundColor(scss.Call("lighten", yellow.Name(), Percent(20)).String()),
 	)
 	// fmt.Println(rule8)
 
-	rule9, _ := Rule(Context(activeClass, a, topId), blueBorder)
+	rule9, _ := Rule(Descendant(activeClass, a, topId), blueBorder)
 
-	css = append(css, rule1, rule2, rule3, yellow, rule4, rounded, rule5, rule6, rule7, rule8, rule9)
-	fmt.Println(css)
+	css := Css(rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9)
+	fmt.Println(yellow, "\n", rounded, "\n", css)
 
-	fmt.Println(blueBorder.Value)
+	// fmt.Println(blueBorder.Value)
 
-	fmt.Println(Div(Styles(Display(NONE)), "hiho"))
-	fmt.Println(Div(Display(NONE), FontWeight(BOLD), "hiho"))
+	fmt.Println(DIV(Styles(Display(None_)), "hiho"))
+	fmt.Println(DIV(Display(None_), FontWeight(Bold_), "hiho"))
 }

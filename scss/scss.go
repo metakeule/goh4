@@ -3,6 +3,7 @@ package scss
 import (
 	"fmt"
 	"github.com/metakeule/goh4"
+	"github.com/metakeule/goh4/css"
 	"strings"
 )
 
@@ -43,7 +44,7 @@ func (ø param) String() (s string) {
 func (ø param) Name() (s string) { return ø.Var.Name() }
 
 type mixin struct {
-	*goh4.RuleStruct
+	*css.RuleStruct
 	Name string
 	Args []string
 }
@@ -53,12 +54,12 @@ func Mixin(name string, params ...param) (ø *mixin) {
 	for _, param := range params {
 		args = append(args, param.String())
 	}
-	ø = &mixin{&goh4.RuleStruct{}, name, args}
+	ø = &mixin{&css.RuleStruct{}, name, args}
 	return
 }
 
 func (ø *mixin) String() string {
-	ø.RuleStruct.Selectors = []goh4.Selecter{ø}
+	ø.RuleStruct.Selector = ø
 	return ø.RuleStruct.String()
 }
 

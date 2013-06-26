@@ -2,7 +2,7 @@ package initializr
 
 import (
 	. "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/tags"
+	. "github.com/metakeule/goh4/tag"
 )
 
 var exampleText string = `Donec id elit non mi porta gravida at eget metus.

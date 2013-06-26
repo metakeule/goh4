@@ -1,4 +1,4 @@
-package attributes
+package attr
 
 import (
 	. "github.com/metakeule/goh4"

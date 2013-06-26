@@ -1,4 +1,4 @@
-package styles
+package styl
 
 import (
 	"fmt"

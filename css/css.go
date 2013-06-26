@@ -21,15 +21,23 @@ type RuleStruct struct {
 	Selector Selecter
 	Styles   []Styler
 	nested   []*RuleStruct
+	children []*RuleStruct
+	Parent   *RuleStruct
 }
 
 func Rule(xs ...interface{}) (r *RuleStruct, err error) {
 	r = &RuleStruct{}
+	r.Styles = []Styler{}
+	r.nested = []*RuleStruct{}
+	r.children = []*RuleStruct{}
+	// r.Selector = SelectorString("")
 	for _, x := range xs {
 		switch v := x.(type) {
 		// we don't want to handle *RuleStruct and *rules here,
 		// since there would be different ways to handle them (Next, Embed, Compose )
 		// and we don't want to have a implicit default way
+		case *RuleStruct:
+			r.children = append(r.children, v)
 		case Selecter:
 			r.Selector = v
 		case Styler:
@@ -63,6 +71,7 @@ func (ø *RuleStruct) ForEach(c SelecterAdder, sel ...Selecter) (*RuleStruct, er
 
 func (ø *RuleStruct) String() string {
 	styles := []string{}
+	// fmt.Println(ø)
 	for _, st := range ø.Styles {
 		styles = append(styles, st.Style())
 	}
@@ -70,17 +79,32 @@ func (ø *RuleStruct) String() string {
 	if ø.Comment != "" {
 		comment = fmt.Sprintf("/* %s */\n", ø.Comment)
 	}
-	strs := []string{}
-	strs = append(strs, ø.Selector.Selector())
-	nested := []string{}
-	for _, nr := range ø.nested {
-		ns := nr.String()
-		nssp := strings.Split(ns, "\n")
-		for _, nsi := range nssp {
-			nested = append(nested, nsi)
+	var my string
+	if ø.Selector != nil {
+		strs := []string{}
+		strs = append(strs, ø.Selector.Selector())
+		nested := []string{}
+		for _, nr := range ø.nested {
+			ns := nr.String()
+			nssp := strings.Split(ns, "\n")
+			for _, nsi := range nssp {
+				nested = append(nested, nsi)
+			}
+		}
+		my = fmt.Sprintf("%s%s {\n\t%s\n\t%s\n}", comment, strings.Join(strs, ",\n"), strings.Join(styles, "\n\t"), strings.Join(nested, "\n\t"))
+	} else {
+		my = ""
+	}
+	all := []string{my}
+	for _, child := range ø.children {
+		if ø.Selector != nil {
+			nu := child.Embed(ø.Selector)
+			all = append(all, nu.String())
+		} else {
+			all = append(all, child.String())
 		}
 	}
-	return fmt.Sprintf("%s%s {\n\t%s\n\t%s\n}", comment, strings.Join(strs, ",\n"), strings.Join(styles, "\n\t"), strings.Join(nested, "\n\t"))
+	return strings.Join(all, "\n")
 }
 
 // adds given styles
@@ -135,10 +159,24 @@ func (ø *RuleStruct) Copy() (newrule *RuleStruct) {
 	for _, st := range ø.Styles {
 		newStyles = append(newStyles, st)
 	}
+
+	newnested := []*RuleStruct{}
+	for _, st := range ø.nested {
+		newnested = append(newnested, st)
+	}
+
+	newchildren := []*RuleStruct{}
+	for _, st := range ø.children {
+		newchildren = append(newchildren, st)
+	}
+
 	newrule = &RuleStruct{
 		Comment:  ø.Comment,
 		Styles:   newStyles,
 		Selector: ø.Selector,
+		nested:   newnested,
+		children: newchildren,
+		Parent:   ø.Parent,
 	}
 	return
 }
@@ -204,6 +242,7 @@ func (ø *rules) Embed(selector Selecter) *rules {
 	return &rules{newRules}
 }
 
+/*
 type Css []Stringer
 
 func (ø Css) String() string {
@@ -214,4 +253,13 @@ func (ø Css) String() string {
 	}
 
 	return strings.Join(rules, "\n\n")
+}
+*/
+
+func Css(xs ...interface{}) *RuleStruct {
+	r, ſ := Rule(xs...)
+	if ſ != nil {
+		panic(ſ.Error())
+	}
+	return r
 }

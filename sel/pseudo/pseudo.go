@@ -1,4 +1,4 @@
-package pseudoclasses
+package pseudo
 
 import (
 	"fmt"

@@ -1,9 +1,9 @@
-package shortcuts
+package short
 
 import (
 	ĸ "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/attributes"
-	. "github.com/metakeule/goh4/tags"
+	. "github.com/metakeule/goh4/attr"
+	. "github.com/metakeule/goh4/tag"
 )
 
 func JsSrc(url string, objects ...interface{}) *ĸ.Element {
@@ -48,44 +48,40 @@ func FormDelete(action string, objects ...interface{}) *ĸ.Element {
 	return FORM(append(params, objects...)...)
 }
 
-func InputHidden(name string, objects ...interface{}) *ĸ.Element {
+func inputType(typ string, name string, objects ...interface{}) *ĸ.Element {
 	params := []interface{}{
-		Type("hidden"),
+		Type(typ),
 		Name(name),
 	}
 	return INPUT(append(params, objects...)...)
+}
+
+func InputHidden(name string, objects ...interface{}) *ĸ.Element {
+	return inputType("hidden", name, objects...)
 }
 
 func InputSubmit(name string, objects ...interface{}) *ĸ.Element {
-	params := []interface{}{
-		Type("submit"),
-		Name(name),
-	}
-	return INPUT(append(params, objects...)...)
+	return inputType("submit", name, objects...)
 }
 
 func InputText(name string, objects ...interface{}) *ĸ.Element {
-	params := []interface{}{
-		Type("text"),
-		Name(name),
-	}
-	return INPUT(append(params, objects...)...)
+	return inputType("text", name, objects...)
 }
 
 func InputButton(name string, objects ...interface{}) *ĸ.Element {
-	params := []interface{}{
-		Type("button"),
-		Name(name),
-	}
-	return INPUT(append(params, objects...)...)
+	return inputType("button", name, objects...)
 }
 
 func InputPassword(name string, objects ...interface{}) *ĸ.Element {
-	params := []interface{}{
-		Type("password"),
-		Name(name),
-	}
-	return INPUT(append(params, objects...)...)
+	return inputType("password", name, objects...)
+}
+
+func InputRadio(name string, objects ...interface{}) *ĸ.Element {
+	return inputType("radio", name, objects...)
+}
+
+func InputFile(name string, objects ...interface{}) *ĸ.Element {
+	return inputType("file", name, objects...)
 }
 
 func AHref(url string, objects ...interface{}) *ĸ.Element {

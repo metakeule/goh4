@@ -2,7 +2,7 @@ package initializr
 
 import (
 	. "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/tags"
+	. "github.com/metakeule/goh4/tag"
 )
 
 func exampleLiA(href string, text string) *Element {
