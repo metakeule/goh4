@@ -21,6 +21,10 @@ func (ø Class) String() string { return string(ø) }
 
 func (ø Class) Selector() string { return fmt.Sprintf(".%s", ø) }
 
+func Classf(format string, i ...interface{}) Class {
+	return Class(fmt.Sprintf(format, i...))
+}
+
 type classes []Class
 
 func Classes(c ...string) classes {
@@ -53,9 +57,17 @@ type Text string
 
 func (ø Text) String() string { return string(ø) }
 
+func Textf(format string, i ...interface{}) Text {
+	return Text(fmt.Sprintf(format, i...))
+}
+
 type Html string
 
 func (ø Html) String() string { return string(ø) }
+
+func Htmlf(format string, i ...interface{}) Html {
+	return Html(fmt.Sprintf(format, i...))
+}
 
 type Tag string
 
@@ -109,9 +121,10 @@ func Attr(key1, val1 string, ø ...string) (s Attrs) {
 	return
 }
 
-func Placeholder(name string) Html {
-	return Html("@@" + name + "@@ ")
-}
+type Placeholder string
+
+func (ø Placeholder) String() string { return "@@" + string(ø) + "@@" }
+func (ø Placeholder) Html() Html     { return Html(ø.String()) }
 
 type Stringer interface {
 	String() string

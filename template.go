@@ -23,8 +23,28 @@ func NewTemplate(t *Element) *Template {
 }
 
 type CompiledTemplate struct {
-	*fastreplace.FReplace
+	frepl    *fastreplace.FReplace
 	Template *Template
+}
+
+func (ø *CompiledTemplate) Instance() *CompiledTemplateInstance {
+	return &CompiledTemplateInstance{ø.frepl.Instance()}
+}
+
+type CompiledTemplateInstance struct {
+	inst fastreplace.Replacer
+}
+
+func (ø *CompiledTemplateInstance) AssignString(key string, value string) {
+	ø.inst.AssignString(key, value)
+}
+
+func (ø *CompiledTemplateInstance) Assign(key Placeholder, value Stringer) {
+	ø.inst.AssignString(string(key), value.String())
+}
+
+func (ø *CompiledTemplateInstance) String() string {
+	return ø.inst.String()
 }
 
 // returns a *CompiledTemplate that is a FReplace (see github.com/metakeule/fastreplace)
@@ -40,10 +60,19 @@ func (ø *Template) Compile() (c *CompiledTemplate, ſ error) {
 		return
 	}
 	c = &CompiledTemplate{
-		FReplace: fr,
+		frepl:    fr,
 		Template: ø,
 	}
 	return
+}
+
+// panics on error
+func (ø *Template) MustCompile() *CompiledTemplate {
+	c, e := ø.Compile()
+	if e != nil {
+		panic(e.Error())
+	}
+	return c
 }
 
 // merges the locals to the Templates
