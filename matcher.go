@@ -21,7 +21,7 @@ func (ø or) Matches(e *Element) bool {
 	return false
 }
 
-func Or(m ...Matcher) or {
+func Or_(m ...Matcher) or {
 	return or(m)
 }
 
@@ -37,7 +37,7 @@ func (ø and) Matches(e *Element) bool {
 	return true
 }
 
-func And(m ...Matcher) and {
+func And_(m ...Matcher) and {
 	return and(m)
 }
 
@@ -46,7 +46,7 @@ type not struct{ Matcher }
 // matches if inner matcher does not match
 func (ø *not) Matches(e *Element) bool { return !ø.Matcher.Matches(e) }
 
-func Not(m Matcher) *not { return &not{m} }
+func Not_(m Matcher) *not { return &not{m} }
 
 type PositionMatcher struct {
 	Element *Element

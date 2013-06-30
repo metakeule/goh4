@@ -6,7 +6,7 @@ import (
 
 type pseudo string
 
-type Selecter interface {
+type selecter interface {
 	Selector() string
 }
 
@@ -88,4 +88,4 @@ func Before() pseudo { return pseudo("::before") }
 func After() pseudo { return pseudo("::after") }
 
 // does not match simple selector
-func Not(selector Selecter) pseudo { return pseudo(fmt.Sprintf("not(%s)", selector.Selector())) }
+func Not(selector selecter) pseudo { return pseudo(fmt.Sprintf("not(%s)", selector.Selector())) }

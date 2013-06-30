@@ -10,19 +10,42 @@ type Styler interface {
 	Style() string
 }
 
+var ParentSelector = SelectorString("&")
+
+func Super(sel ...Selecter) Selecter {
+	return Selector(ParentSelector, sel...)
+}
+
+type CssStringer interface {
+	Css() string
+}
+
 type Import string
 
 func (ø Import) String() string {
 	return fmt.Sprintf("@import %#v;\n", string(ø))
 }
 
+type nest RuleStruct
+
+func Nest(xs ...interface{}) (r *nest) {
+	rl, err := Rule(xs...)
+	if err != nil {
+		panic(err.Error())
+	}
+	n := nest(*rl)
+	r = &n
+	return
+}
+
 type RuleStruct struct {
-	Comment  string
-	Selector Selecter
-	Styles   []Styler
-	nested   []*RuleStruct
-	children []*RuleStruct
-	Parent   *RuleStruct
+	Comment     string
+	Selector    Selecter
+	Styles      []Styler
+	nested      []*RuleStruct
+	children    []*RuleStruct
+	cssStringer []CssStringer
+	Parent      *RuleStruct
 }
 
 func Rule(xs ...interface{}) (r *RuleStruct, err error) {
@@ -30,14 +53,20 @@ func Rule(xs ...interface{}) (r *RuleStruct, err error) {
 	r.Styles = []Styler{}
 	r.nested = []*RuleStruct{}
 	r.children = []*RuleStruct{}
+	r.cssStringer = []CssStringer{}
 	// r.Selector = SelectorString("")
 	for _, x := range xs {
 		switch v := x.(type) {
 		// we don't want to handle *RuleStruct and *rules here,
 		// since there would be different ways to handle them (Next, Embed, Compose )
 		// and we don't want to have a implicit default way
+		case *nest:
+			rls := RuleStruct(*v)
+			r.nested = append(r.nested, &rls)
 		case *RuleStruct:
 			r.children = append(r.children, v)
+		case CssStringer:
+			r.cssStringer = append(r.cssStringer, v)
 		case Selecter:
 			r.Selector = v
 		case Styler:
@@ -96,6 +125,11 @@ func (ø *RuleStruct) String() string {
 		my = ""
 	}
 	all := []string{my}
+
+	for _, cs := range ø.cssStringer {
+		all = append(all, cs.Css())
+	}
+
 	for _, child := range ø.children {
 		if ø.Selector != nil {
 			nu := child.Embed(ø.Selector)
