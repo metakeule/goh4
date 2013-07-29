@@ -2,6 +2,7 @@ package goh4
 
 import (
 	"fmt"
+	// "github.com/metakeule/template"
 	"html"
 	"regexp"
 	"strings"
@@ -75,14 +76,14 @@ func (ø Tag) String() string { return string(ø) }
 
 func (ø Tag) Selector() string { return ø.String() }
 
-type attr struct {
+type SingleAttr struct {
 	Key   string
 	Value string
 }
 
-func (ø attr) String() string { return " " + ø.Key + `="` + html.EscapeString(ø.Value) + `"` }
+func (ø SingleAttr) String() string { return " " + ø.Key + `="` + html.EscapeString(ø.Value) + `"` }
 
-type Attrs []attr
+type Attrs []SingleAttr
 
 func (ø Attrs) String() (s string) {
 	ss := []string{}
@@ -110,21 +111,28 @@ func (ø tags) String() string {
 	return strings.Join(str, ", ")
 }
 
-// helper to easily create multiple attrs
+// helper to easily create multiple SingleAttrs
 // use is like this
 // Attr("width","200px","height","30px","value","hiho")
 func Attr(key1, val1 string, ø ...string) (s Attrs) {
-	s = []attr{attr{key1, val1}}
+	s = []SingleAttr{SingleAttr{key1, val1}}
 	for i := 0; i < len(ø); i = i + 2 {
-		s = append(s, attr{ø[i], ø[i+1]})
+		s = append(s, SingleAttr{ø[i], ø[i+1]})
 	}
 	return
 }
 
+/*
 type Placeholder string
 
-func (ø Placeholder) String() string { return "@@" + string(ø) + "@@" }
-func (ø Placeholder) Html() Html     { return Html(ø.String()) }
+//func (ø Placeholder) String() string { return "@@" + string(ø) + "@@" }
+func (ø Placeholder) Name() string   { return string(ø) }
+func (ø Placeholder) String() string { return string(ø) }
+
+func (ø Placeholder) Key() string { return "@@" + string(ø) + "@@" }
+
+//func (ø Placeholder) Html() Html     { return Html(ø.String()) }
+*/
 
 type Stringer interface {
 	String() string

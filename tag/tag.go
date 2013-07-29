@@ -249,7 +249,7 @@ func FOOTER(objects ...interface{}) (t *Element) {
 
 func FORM(objects ...interface{}) (t *Element) {
 	t = NewElement(Tag("form"))
-	t.Add(Attr("enctype", "multipart/form-data", "method", "post"))
+	//t.Add(Attr("enctype", "multipart/form-data", "method", "post"))
 	t.Add(objects...)
 	return
 }

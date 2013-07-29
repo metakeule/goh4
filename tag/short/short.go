@@ -26,6 +26,13 @@ func FormPost(action string, objects ...interface{}) *ĸ.Element {
 	return FORM(append(params, objects...)...)
 }
 
+//t.Add(Attr("enctype", "multipart/form-data", "method", "post"))
+func FormPostMultipart(action string, objects ...interface{}) *ĸ.Element {
+	//t.Add(Attr("enctype", "multipart/form-data", "method", "post"))
+	params := []interface{}{Method("post"), Action(action), MultiPart()}
+	return FORM(append(params, objects...)...)
+}
+
 func FormPut(action string, objects ...interface{}) *ĸ.Element {
 	params := []interface{}{
 		Method("post"),
@@ -78,6 +85,10 @@ func InputPassword(name string, objects ...interface{}) *ĸ.Element {
 
 func InputRadio(name string, objects ...interface{}) *ĸ.Element {
 	return inputType("radio", name, objects...)
+}
+
+func InputCheckbox(name string, objects ...interface{}) *ĸ.Element {
+	return inputType("checkbox", name, objects...)
 }
 
 func InputFile(name string, objects ...interface{}) *ĸ.Element {

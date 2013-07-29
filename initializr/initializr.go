@@ -106,6 +106,14 @@ func (ø *Initializr) Compile() (*CompiledTemplate, error) {
 	return ø.Template.Compile()
 }
 
+func (ø *Initializr) MustCompile() *CompiledTemplate {
+	t, e := ø.Compile()
+	if e != nil {
+		panic(e.Error())
+	}
+	return t
+}
+
 func (ø *Initializr) CachedJsFile() (path string, content string) {
 	js := []string{}
 	// ŧ.Println("CachedJsFile called")
@@ -249,8 +257,9 @@ func (ø *Initializr) SetupBody() {
 	if ø.UseCachedFiles {
 		ø.Body.Add(SCRIPT(Attr("src", ø.jsPathed(cachedJsPath))))
 	} else {
-		ø.AddScriptFileHead("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js")
-		ø.AddScriptHead(ø.jsPathed(`window.jQuery || document.write('<script src="%s/jquery-1.8.3.min.js"><\/script>')`))
+		//ø.AddScriptFileHead("http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js")
+		//ø.AddScriptHead(ø.jsPathed(`window.jQuery || document.write('<script src="%s/jquery-1.8.3.min.js"><\/script>')`))
+		ø.AddScriptFileHead(ø.jsPathed("%s/jquery-1.8.3.min.js"))
 		//ø.AddScriptFile(ø.jsPathed(`%s/jquery-1.8.3.min.js`))
 		//ø.AddScriptFile(ø.jsPathed("%s/bootstrap.min.js"))
 		ø.AddScriptFile(ø.jsPathed("%s/bootstrap.js"))
@@ -271,7 +280,6 @@ func Layout() (layout *Initializr) {
 		cachedJsHead: []Loadable{},
 		cachedCss:    []Loadable{},
 	}
-	layout.Template.Delimiter = "@@"
 	//layout.Template.Tag = layout.Body
 	layout.Template.Add(layout.Head, layout.Body)
 	return

@@ -146,7 +146,7 @@ func (ø styles) Matches(t *Element) (m bool) {
 }
 */
 
-func (ø attr) Matches(t *Element) bool {
+func (ø SingleAttr) Matches(t *Element) bool {
 	if ø.Key == "id" {
 		return Id(ø.Value).Matches(t)
 	}

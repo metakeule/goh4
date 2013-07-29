@@ -2,14 +2,12 @@ package goh4
 
 import (
 	"fmt"
-	"github.com/metakeule/fastreplace"
 )
 
 type Template struct {
 	*Element
 	locals           map[Id]Stringer
 	placeholderCache map[Id]*Element
-	Delimiter        string
 }
 
 // creates a new template with the given element as root
@@ -18,61 +16,7 @@ func NewTemplate(t *Element) *Template {
 		Element:          t,
 		locals:           map[Id]Stringer{},
 		placeholderCache: map[Id]*Element{},
-		Delimiter:        "@@",
 	}
-}
-
-type CompiledTemplate struct {
-	frepl    *fastreplace.FReplace
-	Template *Template
-}
-
-func (ø *CompiledTemplate) Instance() *CompiledTemplateInstance {
-	return &CompiledTemplateInstance{ø.frepl.Instance()}
-}
-
-type CompiledTemplateInstance struct {
-	inst fastreplace.Replacer
-}
-
-func (ø *CompiledTemplateInstance) AssignString(key string, value string) {
-	ø.inst.AssignString(key, value)
-}
-
-func (ø *CompiledTemplateInstance) Assign(key Placeholder, value Stringer) {
-	ø.inst.AssignString(string(key), value.String())
-}
-
-func (ø *CompiledTemplateInstance) String() string {
-	return ø.inst.String()
-}
-
-// returns a *CompiledTemplate that is a FReplace (see github.com/metakeule/fastreplace)
-// the template will be build as string and then searched for placeholders that
-// start and end with the ø.Delimiter (defaults to "@@")
-// then the various methods of fastreplace.FReplace can be used to merge
-// the placeholders of the template with the values
-// if you need to change the original template again, you can get it via CompiledTemplate.Template
-// then call Compile() again to get a new CompiledTemplate
-func (ø *Template) Compile() (c *CompiledTemplate, ſ error) {
-	fr, ſ := fastreplace.NewString(ø.Delimiter, ø.String())
-	if ſ != nil {
-		return
-	}
-	c = &CompiledTemplate{
-		frepl:    fr,
-		Template: ø,
-	}
-	return
-}
-
-// panics on error
-func (ø *Template) MustCompile() *CompiledTemplate {
-	c, e := ø.Compile()
-	if e != nil {
-		panic(e.Error())
-	}
-	return c
 }
 
 // merges the locals to the Templates
@@ -92,7 +36,7 @@ func (ø *Template) merge() {
 }
 
 // caches the Stringer
-func (ø *Template) cacheFragement(id Id) (err error) {
+func (ø *Template) cacheFragment(id Id) (err error) {
 	h := ø.Element.Any(Id(id))
 	if h == nil {
 		return fmt.Errorf("element with id %v not found in %s", id, ø.Element.String())
@@ -109,7 +53,7 @@ func (ø *Template) cacheFragement(id Id) (err error) {
 // results in <body><div id="content"><p>here we go</p></div></body>
 func (ø *Template) Assign(id Id, html interface{}) (err error) {
 	if ø.placeholderCache[id] == nil {
-		if err = ø.cacheFragement(id); err != nil {
+		if err = ø.cacheFragment(id); err != nil {
 			return err
 		}
 	}

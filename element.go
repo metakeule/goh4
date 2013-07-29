@@ -3,6 +3,8 @@ package goh4
 import (
 	"fmt"
 	"html"
+	"io"
+	"net/http"
 	"strings"
 )
 
@@ -157,6 +159,14 @@ func (ø *Element) WrapChildren(wrapper *Element) {
 	}
 	ø.inner = []Stringer{}
 	ø.Add(wrapper)
+}
+
+func (ø *Element) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(ø.String()))
+}
+
+func (ø *Element) WriteTo(w io.Writer) {
+	w.Write([]byte(ø.String()))
 }
 
 func (ø *Element) SetParent(parent Pather) {
@@ -388,6 +398,33 @@ func (ø *Element) AddAfter(v *Element, nu Elementer) (err error) {
 func (ø *Element) Add(objects ...interface{}) (err error) {
 	for _, o := range objects {
 		switch v := o.(type) {
+		case Placeholder:
+			var e error
+			switch tp := v.Type().(type) {
+			case Comment:
+				e = ø.Add(Comment(v.String()))
+			case Id:
+				e = ø.Add(Id(v.String()))
+			case Class:
+				e = ø.Add(Class(v.String()))
+			case Html:
+				e = ø.Add(Html(v.String()))
+			case Text:
+				e = ø.Add(Text(v.String()))
+			case SingleAttr:
+				e = ø.Add(SingleAttr{tp.Key, v.String()})
+			case Tag:
+				ø.tag = Tag(v.String())
+			case Style:
+				e = ø.Add(Style{tp.Property, v.String()})
+			default:
+				e = fmt.Errorf("%#v (%T) unsupported placeholder type", v, v)
+			}
+			if e != nil {
+				return e
+			}
+			continue
+			//ø.inner = append(ø.inner, Html(v.Key()))
 		case string:
 			if err := ø.ensureContentAddIsAllowed(); err != nil {
 				return err
@@ -412,7 +449,7 @@ func (ø *Element) Add(objects ...interface{}) (err error) {
 		case Comment:
 			ø.Comment = v
 
-		case attr:
+		case SingleAttr:
 			ø.SetAttribute(v.Key, v.Value)
 
 		case Attrs:
@@ -482,6 +519,10 @@ func (ø *Element) Clear() {
 	ø.inner = []Stringer{}
 }
 
+func (ø *Element) Selecter(other ...Selecter) Selecter {
+	return Selector(SelectorString(ø.Selector()), other...)
+}
+
 func (ø *Element) Selector() string {
 	sele := []string{ø.tag.Selector()}
 	if ø.id != Id("") {
@@ -491,6 +532,14 @@ func (ø *Element) Selector() string {
 		sele = append(sele, c.Selector())
 	}
 	return strings.Join(sele, "")
+}
+
+func (ø *Element) AsTemplate() *Template {
+	return NewTemplate(ø)
+}
+
+func (ø *Element) Compile() *CompiledTemplate {
+	return ø.AsTemplate().MustCompile()
 }
 
 // clears the inner object array
@@ -611,17 +660,17 @@ func (ø *Element) String() (res string) {
 func (ø *Element) attrsString() (res string) {
 	res = ""
 	if !ø.Is(IdForbidden) && ø.id != "" {
-		res += attr{"id", string(ø.id)}.String()
+		res += SingleAttr{"id", string(ø.id)}.String()
 	}
 	if !ø.Is(ClassForbidden) && len(ø.classes) > 0 {
-		res += attr{"class", ø.classAttrString(ø.classes)}.String()
+		res += SingleAttr{"class", ø.classAttrString(ø.classes)}.String()
 	}
 	if !ø.Is(Invisible) && len(ø.style) > 0 {
-		res += attr{"style", ø.styleAttrString(ø.style)}.String()
+		res += SingleAttr{"style", ø.styleAttrString(ø.style)}.String()
 	}
 
 	for k, v := range ø.attributes {
-		res += attr{k, v}.String()
+		res += SingleAttr{k, v}.String()
 	}
 	return
 }
