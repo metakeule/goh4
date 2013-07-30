@@ -2,6 +2,7 @@ package goh4
 
 import (
 	"fmt"
+	"github.com/metakeule/template"
 	"html"
 	"io"
 	"net/http"
@@ -111,6 +112,11 @@ func NewElement(t Tag, flags ...flag) (ø *Element) {
 		ø.flags = ø.flags | flag
 	}
 	return
+}
+
+func (ø *Element) NotEscape() *Element {
+	ø.Add(WithoutEscaping)
+	return ø
 }
 
 // checks if a given flag is set, e.g.
@@ -521,6 +527,10 @@ func (ø *Element) Clear() {
 
 func (ø *Element) Selecter(other ...Selecter) Selecter {
 	return Selector(SelectorString(ø.Selector()), other...)
+}
+
+func (ø *Element) Placeholder() template.Placeholder {
+	return Html(ø.String()).Placeholder()
 }
 
 func (ø *Element) Selector() string {
