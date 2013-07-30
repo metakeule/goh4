@@ -2,7 +2,6 @@ package goh4
 
 import (
 	"fmt"
-	"github.com/metakeule/template"
 	"html"
 	"io"
 	"net/http"
@@ -529,7 +528,7 @@ func (ø *Element) Selecter(other ...Selecter) Selecter {
 	return Selector(SelectorString(ø.Selector()), other...)
 }
 
-func (ø *Element) Placeholder() template.Placeholder {
+func (ø *Element) Placeholder() Placeholder {
 	return Html(ø.String()).Placeholder()
 }
 
