@@ -18,8 +18,8 @@ var (
 package main
 
 import (
-	"strings"
-	"io/ioutil"
+    "strings"
+    "io/ioutil"
     "fmt"
     "github.com/metakeule/goh4"
     "@@package@@"
@@ -27,25 +27,33 @@ import (
     "time"
 )
 
+var preClass = "module Class {\n\t"
+var postClass = "}\n\nexport = Class;\n"
+var preId = "module Id {\n\t"
+var postId = "}\n\nexport = Id;\n"
+
 func CompileClasses(classes []goh4.Class, file string, info string) error {
-	ts := []string{"/* " + info + " */"}
-	for _, c := range classes {
-		name := string(c)
-		name = strings.Replace(name, "-", "_", -1)
-		ts = append(ts,  fmt.Sprintf("export function %s() { return '%s';}", strings.ToLower(name), c.Selector() ))
-	}
-	return ioutil.WriteFile(file, []byte(strings.Join(ts, "\n")), os.FileMode(0644))
+    ts := []string{"/* " + info + " */", preClass}
+    for _, c := range classes {
+        name := string(c)
+        name = strings.Replace(name, "-", "_", -1)
+        ts = append(ts,  fmt.Sprintf("\texport var %s = '%s';", strings.ToUpper(name[0:1])+strings.ToLower(name)[1:], string(c) ))
+        ts = append(ts,  fmt.Sprintf("\texport var $%s = '.%s';", strings.ToUpper(name[0:1])+strings.ToLower(name)[1:], string(c) ))
+    }
+    ts = append(ts, postClass)
+    return ioutil.WriteFile(file, []byte(strings.Join(ts, "\n")), os.FileMode(0644))
 }
 
 func CompileIds(ids []goh4.Id, file string, info string) error {
-	ts := []string{"/* " + info + " */"}
-	for _, c := range ids {
-		name := string(c)
-		name = strings.Replace(name, "-", "_", -1)
-		//ts = append(ts, Var("id_"+name).Val(string(c)).Css())
-		ts = append(ts,  fmt.Sprintf("export function %s() { return '%s';}", strings.ToLower(name), c.Selector() ))
-	}
-	return ioutil.WriteFile(file, []byte(strings.Join(ts, "\n")), os.FileMode(0644))
+    ts := []string{"/* " + info + " */", preId}
+    for _, c := range ids {
+        name := string(c)
+        name = strings.Replace(name, "-", "_", -1)
+        ts = append(ts,  fmt.Sprintf("\texport var %s = '%s';", strings.ToUpper(name[0:1])+strings.ToLower(name)[1:], string(c) ))
+        ts = append(ts,  fmt.Sprintf("\texport var $%s = '#%s';", strings.ToUpper(name[0:1])+strings.ToLower(name)[1:], string(c) ))
+    }
+    ts = append(ts, postId)
+    return ioutil.WriteFile(file, []byte(strings.Join(ts, "\n")), os.FileMode(0644))
 }
 
 func main() {

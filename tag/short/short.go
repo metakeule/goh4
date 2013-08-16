@@ -109,3 +109,12 @@ func LabelFor(for_ string, objects ...interface{}) *ĸ.Element {
 	params := []interface{}{For(for_)}
 	return LABEL(append(params, objects...)...)
 }
+
+func Charset(charset string, objects ...interface{}) *ĸ.Element {
+	params := []interface{}{ATTR("charset", charset)}
+	return META(append(params, objects...)...)
+}
+
+func CharsetUtf8(objects ...interface{}) *ĸ.Element {
+	return Charset("utf-8", objects...)
+}

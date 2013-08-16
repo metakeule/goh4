@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/metakeule/template"
 	"html"
+	"os"
 	"reflect"
+	"runtime"
 )
 
 func idem(in string) (out string) { return in }
@@ -58,6 +60,21 @@ func (ø typedPlaceholder) Type() interface{} {
 
 func newTPh(ph template.Placeholder, i interface{}) typedPlaceholder {
 	return typedPlaceholder{ph, i}
+}
+
+func stripGoPath(path string) {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		panic("GOPATH not set")
+	}
+}
+
+func caller(skip int) string {
+	_, file, num, ok := runtime.Caller(skip)
+	if !ok {
+		panic("can't get caller")
+	}
+	return fmt.Sprintf("%s:%v", file, num)
 }
 
 func (ø Comment) Placeholder() Placeholder {

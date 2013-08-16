@@ -33,3 +33,8 @@ func MultiPart() SingleAttr          { return Enctype("multipart/form-data") }
 func DataToggle(f string) SingleAttr { return SingleAttr{"data-toggle", f} }
 func DataTarget(f string) SingleAttr { return SingleAttr{"data-target", f} }
 func DataId(f string) SingleAttr     { return SingleAttr{"data-id", f} }
+
+// RDFa
+func About(a string) SingleAttr    { return SingleAttr{"about", a} }
+func TypeOf(a string) SingleAttr   { return SingleAttr{"typeof", a} }
+func Property(a string) SingleAttr { return SingleAttr{"property", a} }
