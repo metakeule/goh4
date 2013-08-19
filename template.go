@@ -4,19 +4,30 @@ import (
 	"fmt"
 )
 
+type Templatable interface {
+	String() string
+	Tag() string
+	Path() string
+	Any(m Matcher) (r *Element)
+}
+
 type Template struct {
-	*Element
+	Element          Templatable //*Element
 	locals           map[Id]Stringer
 	placeholderCache map[Id]*Element
 }
 
 // creates a new template with the given element as root
-func NewTemplate(t *Element) *Template {
+func NewTemplate(t Templatable) *Template {
 	return &Template{
 		Element:          t,
 		locals:           map[Id]Stringer{},
 		placeholderCache: map[Id]*Element{},
 	}
+}
+
+func (ø *Template) String() string {
+	return ø.Element.String()
 }
 
 // merges the locals to the Templates
@@ -71,7 +82,7 @@ func (ø *Template) Assign(id Id, html interface{}) (err error) {
 // add css to the head of the template
 // returns an error if Element is no doc or has no head child
 func (ø *Template) AddCss(css ...Stringer) (err error) {
-	if ø.Element.tag != "doc" {
+	if ø.Element.Tag() != "doc" {
 		return fmt.Errorf("can't add Css only to doc pseudotag, not %s", ø.Element.Tag())
 	}
 

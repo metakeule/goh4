@@ -118,3 +118,12 @@ func Charset(charset string, objects ...interface{}) *ĸ.Element {
 func CharsetUtf8(objects ...interface{}) *ĸ.Element {
 	return Charset("utf-8", objects...)
 }
+
+func HttpEquiv(http_equiv string, content string, objects ...interface{}) *ĸ.Element {
+	params := []interface{}{ATTR("http-equiv", http_equiv, "content", content)}
+	return META(append(params, objects...)...)
+}
+
+func HttpEquivUtf8(objects ...interface{}) *ĸ.Element {
+	return HttpEquiv("Content-Type", "text/html;charset=utf-8", objects...)
+}
