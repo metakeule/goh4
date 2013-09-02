@@ -9,6 +9,7 @@ type Templatable interface {
 	Tag() string
 	Path() string
 	Any(m Matcher) (r *Element)
+	Add(objects ...interface{}) (err error)
 }
 
 type Template struct {
@@ -28,6 +29,10 @@ func NewTemplate(t Templatable) *Template {
 
 func (ø *Template) String() string {
 	return ø.Element.String()
+}
+
+func (ø *Template) Add(objects ...interface{}) (err error) {
+	return ø.Element.Add(objects...)
 }
 
 // merges the locals to the Templates

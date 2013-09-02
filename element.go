@@ -1,6 +1,7 @@
 package goh4
 
 import (
+	"bytes"
 	"fmt"
 	"html"
 	"io"
@@ -572,27 +573,34 @@ func (ø *Element) SetId(id Id) (err error) {
 }
 
 func (ø *Element) classAttrString(classes []Class) (s string) {
-	s = ""
+	//s = ""
+	var buffer bytes.Buffer
 	for _, cl := range classes {
-		s += cl.String() + " "
+		//s += cl.String() + " "
+		buffer.WriteString(cl.String() + " ")
 	}
-	return
+	return buffer.String()
 }
 
 func (ø *Element) classPath(classes []Class) (s string) {
-	s = ""
+	//s = ""
+	var buffer bytes.Buffer
 	for _, cl := range classes {
-		s += "." + cl.String()
+		//s += "." + cl.String()
+		buffer.WriteString("." + cl.String())
 	}
-	return
+	return buffer.String()
 }
 
 func (ø *Element) styleAttrString(styles map[string]string) (s string) {
-	s = ""
+	var buffer bytes.Buffer
+	//s = ""
 	for k, v := range styles {
-		s += Style{k, v}.String()
+		//s += Style{k, v}.String()
+		buffer.WriteString(Style{k, v}.String())
 	}
-	return
+	return buffer.String()
+	//return
 }
 
 func (ø *Element) HasClass(class Class) bool {
@@ -647,6 +655,7 @@ func (ø *Element) String() (res string) {
 	if ø.Is(WithoutDecoration) {
 		return ø.InnerHtml()
 	}
+
 	commentpre := ""
 	commentpost := ""
 	if ø.Comment != "" {
@@ -667,29 +676,36 @@ func (ø *Element) String() (res string) {
 
 // prepare the id attribute for output
 func (ø *Element) attrsString() (res string) {
-	res = ""
+	var buffer bytes.Buffer
+	//res = ""
 	if !ø.Is(IdForbidden) && ø.id != "" {
-		res += SingleAttr{"id", string(ø.id)}.String()
+		//res += SingleAttr{"id", string(ø.id)}.String()
+		buffer.WriteString(SingleAttr{"id", string(ø.id)}.String())
 	}
 	if !ø.Is(ClassForbidden) && len(ø.classes) > 0 {
-		res += SingleAttr{"class", ø.classAttrString(ø.classes)}.String()
+		//res += SingleAttr{"class", ø.classAttrString(ø.classes)}.String()
+		buffer.WriteString(SingleAttr{"class", ø.classAttrString(ø.classes)}.String())
 	}
 	if !ø.Is(Invisible) && len(ø.style) > 0 {
-		res += SingleAttr{"style", ø.styleAttrString(ø.style)}.String()
+		//res += SingleAttr{"style", ø.styleAttrString(ø.style)}.String()
+		buffer.WriteString(SingleAttr{"style", ø.styleAttrString(ø.style)}.String())
 	}
 
 	for k, v := range ø.attributes {
-		res += SingleAttr{k, v}.String()
+		//res += SingleAttr{k, v}.String()
+		buffer.WriteString(SingleAttr{k, v}.String())
 	}
-	return
+	return buffer.String()
 }
 
 func (ø *Element) InnerHtml() (res string) {
-	res = ""
+	var buffer bytes.Buffer
+	// res = ""
 	for _, in := range ø.inner {
-		res += in.String()
+		//res += in.String()
+		buffer.WriteString(in.String())
 	}
-	return
+	return buffer.String()
 }
 
 // returns only children that are Elements, no Text or Html
