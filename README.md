@@ -3,6 +3,9 @@ goh4
 
 [![Build Status](https://secure.travis-ci.org/metakeule/goh4.png)](http://travis-ci.org/metakeule/goh4)
 
+WARNING: This package is in flux. You should not use it in production yet.
+API will / might break.
+
 type save html and css generation for golang with functions (inspired by http://godoc.org/github.com/daaku/go.h)
 
 example
