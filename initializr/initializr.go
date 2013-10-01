@@ -101,13 +101,13 @@ var charset = META(Attr("charset", "utf-8"))
 var chromeFrame = META(Attr("http-equiv", "X-UA-Compatible"), Attr("content", "IE=edge,chrome=1"))
 var viewport = META(Attr("name", "viewport"), Attr("content", "width=device-width"))
 
-func (ø *Initializr) Compile() (*CompiledTemplate, error) {
+func (ø *Initializr) Compile(name string) (*CompiledTemplate, error) {
 	ø.Template.Add(Html(post))
-	return ø.Template.Compile()
+	return ø.Template.Compile(name)
 }
 
-func (ø *Initializr) MustCompile() *CompiledTemplate {
-	t, e := ø.Compile()
+func (ø *Initializr) MustCompile(name string) *CompiledTemplate {
+	t, e := ø.Compile(name)
 	if e != nil {
 		panic(e.Error())
 	}

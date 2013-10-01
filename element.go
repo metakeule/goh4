@@ -3,6 +3,7 @@ package goh4
 import (
 	"bytes"
 	"fmt"
+	"github.com/metakeule/templ"
 	"html"
 	"io"
 	"net/http"
@@ -404,6 +405,18 @@ func (ø *Element) AddAfter(v *Element, nu Elementer) (err error) {
 func (ø *Element) Add(objects ...interface{}) (err error) {
 	for _, o := range objects {
 		switch v := o.(type) {
+		case templ.Placeholder:
+			e := ø.Add("@@" + v.Name() + "@@")
+			if e != nil {
+				return e
+			}
+			continue
+		case *CompiledTemplate:
+			e := ø.Add("@@" + v.Name() + "@@")
+			if e != nil {
+				return e
+			}
+			continue
 		case Placeholder:
 			var e error
 			switch tp := v.Type().(type) {
@@ -548,8 +561,8 @@ func (ø *Element) AsTemplate() *Template {
 	return NewTemplate(ø)
 }
 
-func (ø *Element) Compile() *CompiledTemplate {
-	return ø.AsTemplate().MustCompile()
+func (ø *Element) Compile(name string) *CompiledTemplate {
+	return ø.AsTemplate().MustCompile(name)
 }
 
 // clears the inner object array
@@ -666,9 +679,9 @@ func (ø *Element) String() (res string) {
 		res = fmt.Sprintf("%s<%s%s />%s", commentpre, string(ø.tag), ø.attrsString(), commentpost)
 	} else {
 		str := "%s<%s%s>%s</%s>%s"
-		if !ø.Is(Inline) {
-			str = "\n%s<%s%s>%s</%s>%s\n"
-		}
+		//if !ø.Is(Inline) {
+		//	str = "\n%s<%s%s>%s</%s>%s\n"
+		//}
 		res = fmt.Sprintf(str, commentpre, string(ø.tag), ø.attrsString(), ø.InnerHtml(), string(ø.tag), commentpost)
 	}
 	return

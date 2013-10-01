@@ -45,8 +45,8 @@ func (ø *DocType) AsTemplate() *Template {
 	return NewTemplate(ø)
 }
 
-func (ø *DocType) Compile() *CompiledTemplate {
-	return ø.AsTemplate().MustCompile()
+func (ø *DocType) Compile(name string) *CompiledTemplate {
+	return ø.AsTemplate().MustCompile(name)
 }
 
 /*

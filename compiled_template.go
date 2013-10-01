@@ -1,11 +1,11 @@
 package goh4
 
 import (
-	"github.com/metakeule/template"
+	"github.com/metakeule/templ"
 )
 
 type CompiledTemplate struct {
-	*template.Template
+	*templ.Template
 	ElementTemplate *Template
 }
 
@@ -13,9 +13,10 @@ type CompiledTemplate struct {
 // the template can then be initialized with New and merged with placeholders with Replace and Merge
 // if you need to change the original template again, you can get it via CompiledTemplate.ElementTemplate
 // then call Compile() again to get a new CompiledTemplate
-func (ø *Template) Compile() (c *CompiledTemplate, ſ error) {
+func (ø *Template) Compile(name string) (c *CompiledTemplate, ſ error) {
 	c = &CompiledTemplate{ElementTemplate: ø}
-	c.Template, ſ = template.New(ø.String())
+	c.Template = templ.New(name).MustAdd(ø.String())
+	ſ = c.Template.Parse()
 	if ſ != nil {
 		c = nil
 		return
@@ -24,8 +25,8 @@ func (ø *Template) Compile() (c *CompiledTemplate, ſ error) {
 }
 
 // panics on error
-func (ø *Template) MustCompile() *CompiledTemplate {
-	c, e := ø.Compile()
+func (ø *Template) MustCompile(name string) *CompiledTemplate {
+	c, e := ø.Compile(name)
 	if e != nil {
 		panic(e.Error())
 	}

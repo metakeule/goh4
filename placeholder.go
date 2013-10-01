@@ -2,28 +2,96 @@ package goh4
 
 import (
 	"fmt"
-	"github.com/metakeule/template"
+	"github.com/metakeule/templ"
 	"html"
+	"net/url"
 	"os"
 	"reflect"
 	"runtime"
+	"strings"
 )
+
+var Escaper = templ.Escaper{
+	"text":     handleStrings(html.EscapeString, true),
+	"":         handleStrings(html.EscapeString, true),
+	"html":     handleStrings(idem, true),
+	"px":       units("%vpx"),
+	"%":        units("%v%%"),
+	"em":       units("%vem"),
+	"pt":       units("%vpt"),
+	"urlparam": handleStrings(url.QueryEscape, false),
+}
+
+type view struct {
+	*templ.View
+}
+
+type placeholder struct {
+	templ.Placeholder
+}
+
+func (p placeholder) String() string {
+	return "@@" + p.Name() + "@@"
+}
+
+func (v *view) Placeholder(field string) placeholder {
+	return placeholder{v.View.Placeholder(field)}
+}
+
+func View(stru interface{}, tag string) *view {
+	return &view{Escaper.View(stru, tag)}
+}
+
+//Placeholder("Link")
+
+func units(format string) func(interface{}) string {
+	return func(in interface{}) (out string) {
+		switch v := in.(type) {
+		case int, int8, int16, int32, int64, float32, float64:
+			return fmt.Sprintf(format, v)
+		default:
+			panic("unsupported type: " + fmt.Sprintf("%v (%T)", v, v))
+		}
+	}
+}
+
+// takes different types and outputs a string
+func Str(in interface{}) string {
+	switch v := in.(type) {
+	case *templ.Placeholder:
+		return "@@" + v.Name() + "@@"
+	case templ.Placeholder:
+		return "@@" + v.Name() + "@@"
+	case Stringer:
+		return v.String()
+	case string:
+		return v
+	}
+	panic("unsupported type: " + fmt.Sprintf("%v (%T)", in, in))
+}
 
 func idem(in string) (out string) { return in }
 
 // is  used by FillStruct, see github.com/metakeule/template
+/*
 var Transformer = map[string]func(interface{}) string{
 	"text": handleStrings(html.EscapeString, true),
 	"html": handleStrings(idem, false),
 }
+*/
 
+/*
 // shortcut for template.FillStruct with transformer
 func FillStruct(ptrToStruct interface{}) map[string]string {
 	return template.FillStruct("goh4", Transformer, ptrToStruct)
 }
+*/
 
 func handleStrings(trafo func(string) string, allowAll bool) func(interface{}) string {
 	return func(in interface{}) (out string) {
+		if in == nil {
+			return ""
+		}
 		var s string
 		switch v := in.(type) {
 		case Stringer:
@@ -42,28 +110,32 @@ func handleStrings(trafo func(string) string, allowAll bool) func(interface{}) s
 }
 
 type Placeholder interface {
-	template.Replacer
-	Set(val interface{}) template.Placeholder
-	Setf(format string, val ...interface{}) template.Placeholder
+	templ.Setter
+	Set(val interface{}) templ.Setter
+	Setf(format string, val ...interface{}) templ.Setter
 	String() string
 	Type() interface{}
 }
 
 type typedPlaceholder struct {
-	template.Placeholder
+	templ.Placeholder
 	typ interface{}
+}
+
+func (ø typedPlaceholder) String() string {
+	return "@@" + ø.Name() + "@@"
 }
 
 func (ø typedPlaceholder) Type() interface{} {
 	return ø.typ
 }
 
-func newTPh(ph template.Placeholder, i interface{}) typedPlaceholder {
+func newTPh(ph templ.Placeholder, i interface{}) typedPlaceholder {
 	return typedPlaceholder{ph, i}
 }
 
 func stripGoPath(path string) {
-	gopath := os.Getenv("GOPATH")
+	gopath := strings.Split(os.Getenv("GOPATH"), ":")[0]
 	if gopath == "" {
 		panic("GOPATH not set")
 	}
@@ -78,36 +150,33 @@ func caller(skip int) string {
 }
 
 func (ø Comment) Placeholder() Placeholder {
-	return newTPh(template.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
+	return newTPh(templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
 }
 
 func (ø Class) Placeholder() Placeholder {
-	return newTPh(template.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
+	return newTPh(templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
 }
 func (ø Id) Placeholder() Placeholder {
-	return newTPh(template.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
+	return newTPh(templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
 }
 func (ø Html) Placeholder() Placeholder {
-	return newTPh(template.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
+	return newTPh(templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
 }
 func (ø Text) Placeholder() Placeholder {
-	t := template.NewPlaceholder(reflect.TypeOf(ø).Name() + "." + string(ø))
-	t.Transformer = handleStrings(html.EscapeString, true)
+	t := templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø), handleStrings(html.EscapeString, true))
 	return newTPh(t, ø)
 }
 
 func (ø SingleAttr) Placeholder() Placeholder {
-	t := template.NewPlaceholder(reflect.TypeOf(ø).Name() + "." + ø.Value)
-	t.Transformer = handleStrings(html.EscapeString, true)
+	t := templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+ø.Value, handleStrings(html.EscapeString, true))
 	return newTPh(t, ø)
 }
 
 func (ø Tag) Placeholder() Placeholder {
-	return newTPh(template.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
+	return newTPh(templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+string(ø)), ø)
 }
 
 func (ø Style) Placeholder() Placeholder {
-	t := template.NewPlaceholder(reflect.TypeOf(ø).Name() + "." + ø.Value)
-	t.Transformer = handleStrings(html.EscapeString, true)
+	t := templ.NewPlaceholder(reflect.TypeOf(ø).Name()+"."+ø.Value, handleStrings(html.EscapeString, true))
 	return newTPh(t, ø)
 }
