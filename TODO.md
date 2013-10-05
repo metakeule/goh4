@@ -1,0 +1,3 @@
+- make template, combinators/selectors, matchers and styles separate packages
+- make an interface for style to allow the rest to be in a different package
+- move package to goon and rename it to element
