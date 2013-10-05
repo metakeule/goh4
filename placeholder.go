@@ -45,7 +45,7 @@ func View(stru interface{}, tag string) *view {
 //Placeholder("Link")
 
 func units(format string) func(interface{}) string {
-	return func(in interface{}) (out string) {
+	fn := func(in interface{}) (out string) {
 		switch v := in.(type) {
 		case int, int8, int16, int32, int64, float32, float64:
 			return fmt.Sprintf(format, v)
@@ -53,6 +53,7 @@ func units(format string) func(interface{}) string {
 			panic("unsupported type: " + fmt.Sprintf("%v (%T)", v, v))
 		}
 	}
+	return fn
 }
 
 // takes different types and outputs a string
