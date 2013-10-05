@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/metakeule/goh4"
+	"github.com/metakeule/goh4"
 	. "github.com/metakeule/goh4/css"
 	. "github.com/metakeule/goh4/less"
 	"github.com/metakeule/goh4/less/fn"
@@ -40,8 +40,8 @@ func main() {
 
 	roundedCorners.Style(
 		BorderRadius(radius.String()),
-		Style{"-webkit-border-radius", radius.String()},
-		Style{"-moz-border-radius", radius.String()},
+		goh4.Style{"-webkit-border-radius", radius.String()},
+		goh4.Style{"-moz-border-radius", radius.String()},
 	)
 
 	css2 := Css(
@@ -95,11 +95,11 @@ func main() {
 		    font-size: 26px;
 		    font-weight: bold;
 		  }
-		  p { 
+		  p {
 		    font-size: 12px;
-		    a { 
+		    a {
 		      text-decoration: none;
-		      &:hover { 
+		      &:hover {
 		        border-width: 1px;
 		      }
 		    }

@@ -17,7 +17,7 @@ var (
 			DIV(CLASS("header"), "header"),
 			DIV(CLASS("content"), content__),
 		),
-	).Compile()
+	).Compile("layout")
 
 	static = XHTML1_0Transitional(
 		HEAD(
@@ -41,7 +41,7 @@ type Layout struct {
 }
 
 func (ø Layout) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	layout.Replace(
+	layout.MustReplace(
 		content__.Set(ø.Content),
 		title__.Set(ø.Title),
 	).WriteTo(rw)
