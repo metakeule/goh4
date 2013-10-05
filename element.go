@@ -542,9 +542,11 @@ func (ø *Element) Selecter(other ...Selecter) Selecter {
 	return Selector(SelectorString(ø.Selector()), other...)
 }
 
+/*
 func (ø *Element) Placeholder() Placeholder {
 	return Html(ø.String()).Placeholder()
 }
+*/
 
 func (ø *Element) Selector() string {
 	sele := []string{ø.tag.Selector()}
@@ -562,6 +564,10 @@ func (ø *Element) AsTemplate() *Template {
 }
 
 func (ø *Element) Compile(name string) *CompiledTemplate {
+	return ø.AsTemplate().MustCompile(name)
+}
+
+func (ø *Element) Placeholder(name string) *CompiledTemplate {
 	return ø.AsTemplate().MustCompile(name)
 }
 

@@ -6,7 +6,7 @@ import (
 )
 
 func err(t *testing.T, msg string, is interface{}, shouldbe interface{}) {
-	t.Errorf(msg+": is %s, should be %s\n", is, shouldbe)
+	t.Errorf(msg+": is %v, should be %v\n", is, shouldbe)
 }
 
 func TestNewElement(t *testing.T) {
@@ -43,7 +43,8 @@ func TestNewElement(t *testing.T) {
 }
 
 func TestElementRemoveAttribute(t *testing.T) {
-	e := A(Attr("href", "#"))
+	e := NewElement(Tag("a"))
+	e.Add(Attr("href", "#"))
 
 	e.RemoveAttribute("href")
 
@@ -52,10 +53,10 @@ func TestElementRemoveAttribute(t *testing.T) {
 	}
 }
 
-// apply the css to the element
 /*
+// apply the css to the element
 func TestElementApplyCss(t *testing.T) {
-	el := Div()
+	el := NewElement(Tag("div"))
 	el.ApplyCss(NewCss(Class("uuh")))
 
 	if !el.HasClass(Class("uuh")) {
@@ -73,8 +74,8 @@ func TestElementApplyCss(t *testing.T) {
 */
 
 func TestElementAdd(t *testing.T) {
-	span := Span()
-	strong := Strong()
+	span := NewElement(Tag("span"))
+	strong := NewElement(Tag("strong"))
 	//	css := NewCss(Class("good-looking"))
 
 	a := NewElement(Tag("a"))
@@ -205,9 +206,10 @@ func TestElementAddErrors(t *testing.T) {
 // markieren, die durch etwas anderes ersetzt wird, aber nicht als tag dargestellt wird
 
 func TestAddTop(t *testing.T) {
-	a := A()
-	div := Div(a)
-	b := B()
+	a := NewElement(Tag("a"))
+	div := NewElement(Tag("div"))
+	div.Add(a)
+	b := NewElement(Tag("b"))
 	div.AddAtPosition(0, b)
 
 	if div.inner[0] != b {
@@ -220,9 +222,10 @@ func TestAddTop(t *testing.T) {
 }
 
 func TestAddBottom(t *testing.T) {
-	a := A()
-	div := Div(a)
-	b := B()
+	a := NewElement(Tag("a"))
+	div := NewElement(Tag("div"))
+	div.Add(a)
+	b := NewElement(Tag("b"))
 	div.Add(b)
 
 	if div.inner[1] != b {
@@ -235,11 +238,13 @@ func TestAddBottom(t *testing.T) {
 }
 
 func TestAddAtPosition(t *testing.T) {
-	a := A()
-	b := B()
-	h := Hr()
+	a := NewElement(Tag("a"))
+	b := NewElement(Tag("b"))
+	h := NewElement(Tag("hr"))
 
-	div := Div(a, b)
+	div := NewElement(Tag("div"))
+	div.Add(a, b)
+	// div := Div(a, b)
 
 	div.AddAtPosition(1, h)
 
@@ -259,7 +264,8 @@ func TestAddAtPosition(t *testing.T) {
 		err(t, "incorrect result for AddAtPosition error", "out of range", nil)
 	}
 
-	div2 := Div(a, b, b, a, b)
+	div2 := NewElement(Tag("div"))
+	div2.Add(a, b, b, a, b)
 
 	div2.AddAtPosition(3, h)
 
@@ -308,28 +314,30 @@ func ExampleNewElement_withoutDecoration() {
 
 	layout := NewTemplate(doc)
 
+	body := NewElement(Tag("body"))
+	body.Add(Id("content"))
+
 	doc.Add(
 		Html("<!DOCTYPE html>"),
-		Body(
-			Id("content")),
+		body,
 		Html("</html>"))
 
 	layout.Assign("content", "in the body")
 	fmt.Println(layout)
 
-	// Output: <!DOCTYPE html>
-	// <body id="content">in the body</body>
-	// </html>
+	// Output: <!DOCTYPE html><body id="content">in the body</body></html>
 }
 
 // html, text and elementer are added as inner content
 func ExampleElement_Add() {
-	div := Div()
+	div := NewElement(Tag("div"))
+	span := NewElement(Tag("span"))
+	span.Add("hiho")
 
 	div.Add(
 		Html("<b>hello</b>"), // is not escaped
 		Text("c > d"),        // is escaped
-		Span("hiho"))         // objects to tag constructors like Div(), Span(),... gets passed to Add()
+		span)                 // objects to tag constructors like Div(), Span(),... gets passed to Add()
 
 	fmt.Println(div)
 	// Output: <div><b>hello</b>c &gt; d<span>hiho</span></div>
@@ -338,7 +346,8 @@ func ExampleElement_Add() {
 // add / set properties
 func ExampleElement_Add_properties() {
 	//	css := NewCss(Class("yellow"), Style("background-color", "yellow"))
-	d := Div(Class("first")) // objects to tag constructors like Div(), Body(),... gets passed to Add()
+	d := NewElement(Tag("div"))
+	d.Add(Class("first"))
 
 	d.Add(
 		Id("main"),
@@ -358,11 +367,12 @@ func ExampleElement_Add_properties() {
 }
 
 func TestSetAtPosition(t *testing.T) {
-	a := A()
-	b := B()
-	h := Hr()
+	a := NewElement(Tag("a"))
+	b := NewElement(Tag("b"))
+	h := NewElement(Tag("hr"))
 
-	div := Div(a, b)
+	div := NewElement(Tag("div"))
+	div.Add(a, b)
 
 	div.SetAtPosition(1, h)
 
@@ -376,11 +386,12 @@ func TestSetAtPosition(t *testing.T) {
 }
 
 func TestSetBottom(t *testing.T) {
-	a := A()
-	b := B()
-	h := Hr()
+	a := NewElement(Tag("a"))
+	b := NewElement(Tag("b"))
+	h := NewElement(Tag("hr"))
 
-	div := Div(a, b)
+	div := NewElement(Tag("div"))
+	div.Add(a, b)
 
 	div.SetBottom(h)
 
@@ -391,13 +402,15 @@ func TestSetBottom(t *testing.T) {
 }
 
 func TestPositionOf(t *testing.T) {
-	a := A()
-	b := B()
-	h := Hr()
-	s := Strong()
-	u := Ul()
+	a := NewElement(Tag("a"))
+	b := NewElement(Tag("b"))
+	h := NewElement(Tag("hr"))
+	s := NewElement(Tag("strong"))
+	u := NewElement(Tag("ul"))
 
-	div := Div(a, b, h, s)
+	div := NewElement(Tag("div"))
+
+	div.Add(a, b, h, s)
 
 	pos, _ := div.PositionOf(b)
 
@@ -418,12 +431,14 @@ func TestPositionOf(t *testing.T) {
 }
 
 func TestAddBefore(t *testing.T) {
-	a := A()
-	b := B()
-	h := Hr()
-	s := Strong()
+	a := NewElement(Tag("a"))
+	b := NewElement(Tag("b"))
+	body := NewElement(Tag("body"))
+	h := NewElement(Tag("hr"))
+	s := NewElement(Tag("strong"))
 
-	div := Div(a, b, h)
+	div := NewElement(Tag("div"))
+	div.Add(a, b, h)
 
 	div.AddBefore(b, s)
 
@@ -438,19 +453,21 @@ func TestAddBefore(t *testing.T) {
 		err(t, "incorrect result for AddBefore", pos, 1)
 	}
 
-	if e := div.AddBefore(Body(), h); e == nil {
+	if e := div.AddBefore(body, h); e == nil {
 		err(t, "incorrect result for AddBefore error not found", "not found", nil)
 	}
 }
 
 func TestAddAfter(t *testing.T) {
-	a := A()
-	b := B()
-	h := Hr()
-	s := Strong()
-	sp := Span()
+	a := NewElement(Tag("a"))
+	b := NewElement(Tag("b"))
+	body := NewElement(Tag("body"))
+	h := NewElement(Tag("hr"))
+	s := NewElement(Tag("strong"))
+	sp := NewElement(Tag("span"))
 
-	div := Div(a, b, h)
+	div := NewElement(Tag("div"))
+	div.Add(a, b, h)
 
 	div.AddAfter(b, s)
 	div.AddAfter(h, sp)
@@ -471,13 +488,14 @@ func TestAddAfter(t *testing.T) {
 		err(t, "incorrect result for AddAfter", pos, 4)
 	}
 
-	if e := div.AddAfter(Body(), h); e == nil {
+	if e := div.AddAfter(body, h); e == nil {
 		err(t, "incorrect result for AddAfter error not found", "not found", nil)
 	}
 }
 
 func TestHasClass(t *testing.T) {
-	e := A(Class("dipsy"), Class("flopsy"))
+	e := NewElement(Tag("a"))
+	e.Add(Class("dipsy"), Class("flopsy"))
 	if !e.HasClass(Class("dipsy")) {
 		err(t, "incorrect result for HasClass having class", false, true)
 	}

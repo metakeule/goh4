@@ -4,37 +4,35 @@ import (
 	"testing"
 )
 
-func TestNewTemplate(t *testing.T) {
-	body := Body(Id("contact"))
-	layout := NewTemplate(body)
+func TestTemplatePlaceholder(t *testing.T) {
+	text := Text("text").Placeholder()
+	strong := NewElement(Tag("strong"))
+	strong.Add(text)
+	content := strong.Placeholder("content")
 
-	if layout.Id() != body.Id() {
-		err(t, "incorrect template element id", layout.Id(), body.Id())
-	}
+	span := NewElement(Tag("span"))
+	span.Add(content)
+	layout := span.Placeholder("layout")
 
-}
+	l := layout.MustReplace(content.MustReplace(text.Set("<hu>")))
+	exp := `<span><strong>&lt;hu&gt;</strong></span>`
 
-func TestTemplateCompile(t *testing.T) {
-	layout := NewTemplate(Span(Html("@@content@@")))
-	content := Strong(Text("hiho"))
-	compiled, _ := layout.Compile()
-	i := compiled.Instance()
-	i.AssignString("content", content.String())
-	exp := `<span><strong>hiho</strong></span>`
-
-	if i.String() != exp {
-		err(t, "incorrect template compilation", i.String(), exp)
+	if l.String() != exp {
+		err(t, "incorrect template compilation", l.String(), exp)
 	}
 }
 
 func TestTemplateAssign(t *testing.T) {
-	body := Body(
+	body := NewElement(Tag("body"))
+	div := NewElement(Tag("div"))
+	div.Add(Id("content"))
+	body.Add(
 		Id("contact"),
-		Div(
-			Id("content")))
+		div)
 	layout := NewTemplate(body)
 
-	content := P(Text("hiho"))
+	content := NewElement(Tag("p"))
+	content.Add(Text("hiho"))
 
 	layout.Assign(Id("content"), content)
 
@@ -42,7 +40,8 @@ func TestTemplateAssign(t *testing.T) {
 		err(t, "incorrect template assignment", body.Children()[0], content)
 	}
 
-	other := Span(Text("huhu"))
+	other := NewElement(Tag("span"))
+	other.Add(Text("huhu"))
 
 	layout.Assign(Id("content"), other)
 
