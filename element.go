@@ -138,6 +138,15 @@ func (ø *Element) Parent() Pather {
 	return ø.parent
 }
 
+func (ø *Element) SetAttributes(a ...string) {
+	if len(a)%2 != 0 {
+		panic("no even number, need pairs of key, val")
+	}
+	for i := 0; i < len(a); i += 2 {
+		ø.SetAttribute(a[i], a[i+1])
+	}
+}
+
 // sets the attribute k to v as long as k is not "id" or "class"
 // use SetId() to set the id and AddClass() to add a class
 func (ø *Element) SetAttribute(k, v string) {
@@ -682,19 +691,19 @@ func (ø *Element) String() (res string) {
 		commentpost = fmt.Sprintf("<!-- End: %s -->", ø.Comment)
 	}
 	if ø.Is(SelfClosing) {
-		res = fmt.Sprintf("%s<%s%s />%s", commentpre, string(ø.tag), ø.attrsString(), commentpost)
+		res = fmt.Sprintf("%s<%s%s />%s", commentpre, string(ø.tag), ø.AttrsString(), commentpost)
 	} else {
 		str := "%s<%s%s>%s</%s>%s"
 		//if !ø.Is(Inline) {
 		//	str = "\n%s<%s%s>%s</%s>%s\n"
 		//}
-		res = fmt.Sprintf(str, commentpre, string(ø.tag), ø.attrsString(), ø.InnerHtml(), string(ø.tag), commentpost)
+		res = fmt.Sprintf(str, commentpre, string(ø.tag), ø.AttrsString(), ø.InnerHtml(), string(ø.tag), commentpost)
 	}
 	return
 }
 
 // prepare the id attribute for output
-func (ø *Element) attrsString() (res string) {
+func (ø *Element) AttrsString() (res string) {
 	var buffer bytes.Buffer
 	//res = ""
 	if !ø.Is(IdForbidden) && ø.id != "" {

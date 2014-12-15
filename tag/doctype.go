@@ -30,7 +30,8 @@ func docTypeXml(doctypeString string, objects ...interface{}) (d *DocType) {
 }
 
 func (ø *DocType) String() string {
-	return ø.doctype + "\n<html" + ø.htmlAttributes + ">\n" + ø.Element.String() + "\n</html>\n"
+	//ø.Element.
+	return ø.doctype + "\n<html " + ø.htmlAttributes + " " + ø.Element.AttrsString() + " >\n" + ø.Element.String() + "\n</html>\n"
 }
 
 func (ø *DocType) ServeHTTP(w http.ResponseWriter, r *http.Request) {
