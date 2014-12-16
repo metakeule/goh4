@@ -1,9 +1,9 @@
 package short
 
 import (
-	ĸ "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/attr"
-	. "github.com/metakeule/goh4/tag"
+	ĸ "gopkg.in/metakeule/goh4.v5"
+	. "gopkg.in/metakeule/goh4.v5/attr"
+	. "gopkg.in/metakeule/goh4.v5/tag"
 )
 
 func JsSrc(url string, objects ...interface{}) *ĸ.Element {

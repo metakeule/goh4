@@ -19,7 +19,7 @@ package main
 
 import (
     "fmt"
-    "github.com/metakeule/goh4/@@format@@"
+    "gopkg.in/metakeule/goh4.v5/@@format@@"
     "@@package@@"
     "os"
     "time"

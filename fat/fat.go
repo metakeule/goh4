@@ -2,9 +2,9 @@ package fat
 
 import (
 	"fmt"
-	"github.com/metakeule/fat"
-	"github.com/metakeule/goh4"
-	"github.com/metakeule/meta"
+	"gopkg.in/go-on/lib.v2/internal/fat"
+	"gopkg.in/metakeule/goh4.v5"
+	"gopkg.in/metakeule/meta.v5"
 	"github.com/metakeule/templ"
 	"reflect"
 	"sync"

@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/metakeule/fat"
-	. "github.com/metakeule/goh4/fat"
-	. "github.com/metakeule/goh4/tag"
+	"gopkg.in/go-on/lib.v2/internal/fat"
+	. "gopkg.in/metakeule/goh4.v5/fat"
+	. "gopkg.in/metakeule/goh4.v5/tag"
 )
 
 type Person struct {

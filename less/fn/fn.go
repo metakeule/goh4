@@ -1,7 +1,7 @@
 package fn
 
 import (
-	"github.com/metakeule/goh4/less"
+	"gopkg.in/metakeule/goh4.v5/less"
 )
 
 func fn(f string, i ...string) string {

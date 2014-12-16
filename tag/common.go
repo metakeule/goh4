@@ -1,7 +1,7 @@
 package tag
 
 import (
-	. "github.com/metakeule/goh4"
+	. "gopkg.in/metakeule/goh4.v5"
 )
 
 func CLASS(c string) Class                          { return Class(c) }

@@ -2,8 +2,8 @@ package initializr
 
 import (
 	ŧ "fmt"
-	. "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/tag"
+	. "gopkg.in/metakeule/goh4.v5"
+	. "gopkg.in/metakeule/goh4.v5/tag"
 	"io/ioutil"
 	ħ "net/http"
 	"os"

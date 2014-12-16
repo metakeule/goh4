@@ -2,7 +2,7 @@ package tag
 
 import (
 	"fmt"
-	"github.com/metakeule/goh4"
+	"gopkg.in/metakeule/goh4.v5"
 	"strings"
 	"testing"
 )

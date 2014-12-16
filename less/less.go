@@ -2,8 +2,8 @@ package less
 
 import (
 	"fmt"
-	"github.com/metakeule/goh4"
-	"github.com/metakeule/goh4/css"
+	"gopkg.in/metakeule/goh4.v5"
+	"gopkg.in/metakeule/goh4.v5/css"
 	"io/ioutil"
 	"os"
 	"strings"

@@ -2,7 +2,7 @@ package main
 
 import (
 	ŧ "fmt"
-	. "github.com/metakeule/goh4/initializr"
+	. "gopkg.in/metakeule/goh4.v5/initializr"
 )
 
 func main() {

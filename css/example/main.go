@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	. "github.com/metakeule/goh4/css"
-	. "github.com/metakeule/goh4/styl"
-	. "github.com/metakeule/goh4/styl/color"
-	. "github.com/metakeule/goh4/tag"
+	. "gopkg.in/metakeule/goh4.v5/css"
+	. "gopkg.in/metakeule/goh4.v5/styl"
+	. "gopkg.in/metakeule/goh4.v5/styl/color"
+	. "gopkg.in/metakeule/goh4.v5/tag"
 )
 
 var bestClass = CLASS("best")

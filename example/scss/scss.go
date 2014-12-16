@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	. "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/css"
-	"github.com/metakeule/goh4/scss"
-	"github.com/metakeule/goh4/sel/attmatch"
-	"github.com/metakeule/goh4/sel/pseudo"
-	. "github.com/metakeule/goh4/styl"
-	. "github.com/metakeule/goh4/tag"
+	. "gopkg.in/metakeule/goh4.v5"
+	. "gopkg.in/metakeule/goh4.v5/css"
+	"gopkg.in/metakeule/goh4.v5/scss"
+	"gopkg.in/metakeule/goh4.v5/sel/attmatch"
+	"gopkg.in/metakeule/goh4.v5/sel/pseudo"
+	. "gopkg.in/metakeule/goh4.v5/styl"
+	. "gopkg.in/metakeule/goh4.v5/tag"
 )
 
 func main() {

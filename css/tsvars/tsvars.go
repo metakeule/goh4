@@ -21,7 +21,7 @@ import (
     "strings"
     "io/ioutil"
     "fmt"
-    "github.com/metakeule/goh4"
+    "gopkg.in/metakeule/goh4.v5"
     "@@package@@"
     "os"
     "time"

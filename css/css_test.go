@@ -2,8 +2,8 @@ package css
 
 import (
 	// "fmt"
-	. "github.com/metakeule/goh4"
-	. "github.com/metakeule/goh4/tag"
+	. "gopkg.in/metakeule/goh4.v5"
+	. "gopkg.in/metakeule/goh4.v5/tag"
 	"testing"
 )
 
